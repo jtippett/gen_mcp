@@ -46,6 +46,7 @@ On [hexdocs.pm](https://hexdocs.pm/gen_mcp).
   processes)
 * Tools listing (no pagination)
 * Resources (with pagination)
+* Resources subscription
 * Prompts (with pagination)
 * Session storage and restoration
 
@@ -55,4 +56,3 @@ On [hexdocs.pm](https://hexdocs.pm/gen_mcp).
 * Server requests (elicitation, sampling and roots)
 * Stdio transport and burrito wrapping tools
 * Messages resumability
-* Resources subscription

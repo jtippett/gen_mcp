@@ -1241,6 +1241,34 @@ defmodule GenMCP.MCP.ProgressNotification do
   @type t :: %__MODULE__{}
 end
 
+defmodule GenMCP.MCP.ResourceUpdatedNotification do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:method, :params])
+
+  defschema %{
+    description: ~SD"""
+    A notification from the server to the client that a subscribed resource
+    has been updated.
+    """,
+    properties: %{
+      method: const("notifications/resources/updated"),
+      params: %{
+        properties: %{
+          uri: uri(description: "The URI of the resource that was updated.")
+        },
+        required: ["uri"],
+        type: "object"
+      }
+    },
+    required: [:method, :params],
+    title: "MCP:ResourceUpdatedNotification",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
 defmodule GenMCP.MCP.ProgressToken do
   use JSV.Schema
 

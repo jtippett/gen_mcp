@@ -1876,4 +1876,105 @@ defmodule GenMCP.SuiteTest do
       assert [%{name: "ext2_prompt", description: "Ext2 Prompt"}] = page5
     end
   end
+
+  describe "resource subscriptions" do
+    test "advertises subscribe capability when resources are available" do
+      stub(ResourceRepoMock, :prefix, fn :test_repo -> "file:///" end)
+
+      {:ok, state} =
+        Suite.init(
+          "some-session-id",
+          Keyword.merge(@server_info, resources: [{ResourceRepoMock, :test_repo}])
+        )
+
+      init_req = %MCP.InitializeRequest{
+        id: 1,
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, result}, _state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{
+               capabilities: %MCP.ServerCapabilities{
+                 resources: %{subscribe: true}
+               }
+             } = result
+    end
+
+    test "subscribe adds URI to subscribed set" do
+      state = init_session()
+
+      subscribe_req = %MCP.SubscribeRequest{
+        id: 1,
+        params: %{uri: "file:///test.txt"}
+      }
+
+      assert {:reply, {:result, %MCP.Result{}}, new_state} =
+               Suite.handle_request(subscribe_req, build_channel(), state)
+
+      assert MapSet.member?(new_state.subscribed_uris, "file:///test.txt")
+    end
+
+    test "unsubscribe removes URI from subscribed set" do
+      state = init_session()
+
+      # First subscribe
+      subscribe_req = %MCP.SubscribeRequest{
+        id: 1,
+        params: %{uri: "file:///test.txt"}
+      }
+
+      {:reply, {:result, _}, state} =
+        Suite.handle_request(subscribe_req, build_channel(), state)
+
+      # Then unsubscribe
+      unsubscribe_req = %MCP.UnsubscribeRequest{
+        id: 2,
+        params: %{uri: "file:///test.txt"}
+      }
+
+      assert {:reply, {:result, %MCP.Result{}}, new_state} =
+               Suite.handle_request(unsubscribe_req, build_channel(), state)
+
+      refute MapSet.member?(new_state.subscribed_uris, "file:///test.txt")
+    end
+
+    test "duplicate subscribe is idempotent" do
+      state = init_session()
+
+      subscribe_req = %MCP.SubscribeRequest{
+        id: 1,
+        params: %{uri: "file:///test.txt"}
+      }
+
+      {:reply, {:result, _}, state} =
+        Suite.handle_request(subscribe_req, build_channel(), state)
+
+      # Subscribe again to the same URI
+      {:reply, {:result, %MCP.Result{}}, new_state} =
+        Suite.handle_request(%{subscribe_req | id: 2}, build_channel(), state)
+
+      assert MapSet.member?(new_state.subscribed_uris, "file:///test.txt")
+      assert MapSet.size(new_state.subscribed_uris) == 1
+    end
+
+    test "unsubscribe non-existent URI is a no-op" do
+      state = init_session()
+
+      unsubscribe_req = %MCP.UnsubscribeRequest{
+        id: 1,
+        params: %{uri: "file:///not-subscribed.txt"}
+      }
+
+      assert {:reply, {:result, %MCP.Result{}}, new_state} =
+               Suite.handle_request(unsubscribe_req, build_channel(), state)
+
+      assert MapSet.size(new_state.subscribed_uris) == 0
+    end
+  end
 end

@@ -165,6 +165,17 @@ defmodule GenMCP.Mux.Session do
     end
   end
 
+  def handle_call({:"$gen_mcp", :notify_resource_updated, uri}, _from, state) do
+    state = refresh_session_timeout(state)
+
+    if function_exported?(state.server_mod, :notify_resource_updated, 2) do
+      result = state.server_mod.notify_resource_updated(uri, state.server_state)
+      {:reply, result, state}
+    else
+      {:reply, {:error, :not_supported}, state}
+    end
+  end
+
   def handle_call({:"$gen_mcp", :restore_session, session_data, channel}, _from, state) do
     state = refresh_session_timeout(state)
 

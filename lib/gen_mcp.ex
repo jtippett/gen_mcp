@@ -202,4 +202,24 @@ defmodule GenMCP do
   def attach_default_logger(filters \\ []) do
     GenMCP.TelemetryLogger.attach(filters)
   end
+
+  @doc """
+  Notifies a session that a subscribed resource has been updated.
+
+  If the session is subscribed to the given URI and has an open listener
+  channel, sends a `notifications/resources/updated` notification to the client.
+
+  Returns:
+  - `{:ok, :notified}` - notification was sent
+  - `{:ok, :not_subscribed}` - session exists but isn't subscribed to this URI
+  - `{:ok, :no_listener}` - session is subscribed but has no open listener channel
+  - `{:error, {:session_not_found, session_id}}` - session doesn't exist
+  - `{:error, :not_supported}` - server implementation doesn't support subscriptions
+  """
+  @spec notify_resource_updated(session_id :: String.t(), uri :: String.t()) ::
+          {:ok, :notified | :not_subscribed | :no_listener}
+          | {:error, {:session_not_found, String.t()} | :not_supported}
+  def notify_resource_updated(session_id, uri) do
+    GenMCP.Mux.call_session(session_id, {:"$gen_mcp", :notify_resource_updated, uri})
+  end
 end

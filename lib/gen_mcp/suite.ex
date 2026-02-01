@@ -89,6 +89,7 @@ defmodule GenMCP.Suite do
       :sc_channel_mref,
       :server_info,
       :session_id,
+      :subscribed_uris,
       :token_key,
       :tool_names,
       :tools_map,
@@ -262,6 +263,18 @@ defmodule GenMCP.Suite do
 
     result = MCP.list_resource_templates_result(templates)
     {:reply, {:result, result}, state}
+  end
+
+  def handle_request(%MCP.SubscribeRequest{} = req, _channel, state) do
+    uri = req.params.uri
+    subscribed_uris = MapSet.put(state.subscribed_uris, uri)
+    {:reply, {:result, %MCP.Result{}}, %{state | subscribed_uris: subscribed_uris}}
+  end
+
+  def handle_request(%MCP.UnsubscribeRequest{} = req, _channel, state) do
+    uri = req.params.uri
+    subscribed_uris = MapSet.delete(state.subscribed_uris, uri)
+    {:reply, {:result, %MCP.Result{}}, %{state | subscribed_uris: subscribed_uris}}
   end
 
   def handle_request(%MCP.ListPromptsRequest{} = req, channel, state) do
@@ -467,6 +480,35 @@ defmodule GenMCP.Suite do
     _ = sc_mod.delete(session_id, sc_state)
   end
 
+  @doc """
+  Notifies the client that a subscribed resource has been updated.
+
+  Returns:
+  - `{:ok, :notified}` - notification was sent
+  - `{:ok, :not_subscribed}` - session is not subscribed to this URI
+  - `{:ok, :no_listener}` - session is subscribed but has no open listener channel
+  """
+  @spec notify_resource_updated(uri :: String.t(), state :: map()) ::
+          {:ok, :notified | :not_subscribed | :no_listener}
+  def notify_resource_updated(uri, state) do
+    cond do
+      uri not in state.subscribed_uris ->
+        {:ok, :not_subscribed}
+
+      state.sc_channel.status == :closed ->
+        {:ok, :no_listener}
+
+      true ->
+        notification = %MCP.ResourceUpdatedNotification{
+          method: "notifications/resources/updated",
+          params: %{uri: uri}
+        }
+
+        send(state.sc_channel.client, {:"$gen_mcp", :notification, notification})
+        {:ok, :notified}
+    end
+  end
+
   defp session_listener_channel_change(state, event) do
     %{
       sc_mod: sc_mod,
@@ -629,6 +671,7 @@ defmodule GenMCP.Suite do
         extensions: build_extensions(opts),
         server_info: build_server_info(opts),
         session_id: init_data.session_id,
+        subscribed_uris: MapSet.new(),
         token_key: random_string(64),
         trackers: empty_trackers(),
 
@@ -675,8 +718,15 @@ defmodule GenMCP.Suite do
     [
       tools: map_size(state.tools_map) > 0,
       prompts: map_size(state.prompt_repos) > 0,
-      resources: map_size(state.resource_repos) > 0
+      resources: resource_capabilities(state)
     ]
+  end
+
+  defp resource_capabilities(state) do
+    case map_size(state.resource_repos) > 0 do
+      true -> %{subscribe: true}
+      false -> false
+    end
   end
 
   defp refresh_extensions(state, channel, :all) do
