@@ -336,7 +336,10 @@ defmodule GenMCP.Suite do
   def handle_request(%MCP.ListTasksRequest{}, channel, %{task_store: ts} = state)
       when ts != nil do
     {:ok, tasks, task_store_state} =
-      state.task_store.list(channel.assigns[:session_id] || state.session_id, state.task_store_state)
+      state.task_store.list(
+        channel.assigns[:session_id] || state.session_id,
+        state.task_store_state
+      )
 
     mcp_tasks = Enum.map(tasks, &task_to_mcp/1)
     result = %MCP.ListTasksResult{tasks: mcp_tasks}
@@ -796,7 +799,9 @@ defmodule GenMCP.Suite do
 
   defp initialize_task_store(opts) do
     case Keyword.get(opts, :task_store) do
-      nil -> {nil, nil}
+      nil ->
+        {nil, nil}
+
       {mod, store_opts} ->
         {:ok, store_state} = mod.init(store_opts)
         {mod, store_state}
@@ -836,7 +841,11 @@ defmodule GenMCP.Suite do
       tools: map_size(state.tools_map) > 0,
       prompts: map_size(state.prompt_repos) > 0,
       resources:
-        if(has_resources, do: %{subscribe: true}, else: false),
+        if has_resources do
+          %{subscribe: true}
+        else
+          false
+        end,
       tasks: has_tasks
     ]
   end
