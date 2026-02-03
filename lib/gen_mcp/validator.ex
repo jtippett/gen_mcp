@@ -10,12 +10,12 @@ defmodule GenMCP.Validator do
   validable = [
     request: [
       GenMCP.MCP.InitializeRequest,
-      # GenMCP.MCP.PingRequest,
+      GenMCP.MCP.PingRequest,
       GenMCP.MCP.ListResourcesRequest,
       GenMCP.MCP.ListResourceTemplatesRequest,
       GenMCP.MCP.ReadResourceRequest,
-      # GenMCP.MCP.SubscribeRequest,
-      # GenMCP.MCP.UnsubscribeRequest,
+      GenMCP.MCP.SubscribeRequest,
+      GenMCP.MCP.UnsubscribeRequest,
       GenMCP.MCP.ListPromptsRequest,
       GenMCP.MCP.GetPromptRequest,
       GenMCP.MCP.ListToolsRequest,

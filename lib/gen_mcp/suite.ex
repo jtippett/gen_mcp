@@ -89,6 +89,7 @@ defmodule GenMCP.Suite do
       :sc_channel_mref,
       :server_info,
       :session_id,
+      :subscribed_uris,
       :token_key,
       :tool_names,
       :tools_map,
@@ -160,6 +161,10 @@ defmodule GenMCP.Suite do
   # the client notification is received.
   def handle_request(_req, _, {:__init__, _, _} = state) do
     {:error, :not_initialized, state}
+  end
+
+  def handle_request(%MCP.PingRequest{}, _channel, state) do
+    {:reply, {:result, %MCP.Result{}}, state}
   end
 
   # TODO handle cursor?
@@ -262,6 +267,18 @@ defmodule GenMCP.Suite do
 
     result = MCP.list_resource_templates_result(templates)
     {:reply, {:result, result}, state}
+  end
+
+  def handle_request(%MCP.SubscribeRequest{} = req, _channel, state) do
+    uri = req.params.uri
+    subscribed_uris = MapSet.put(state.subscribed_uris, uri)
+    {:reply, {:result, %MCP.Result{}}, %{state | subscribed_uris: subscribed_uris}}
+  end
+
+  def handle_request(%MCP.UnsubscribeRequest{} = req, _channel, state) do
+    uri = req.params.uri
+    subscribed_uris = MapSet.delete(state.subscribed_uris, uri)
+    {:reply, {:result, %MCP.Result{}}, %{state | subscribed_uris: subscribed_uris}}
   end
 
   def handle_request(%MCP.ListPromptsRequest{} = req, channel, state) do
@@ -629,6 +646,7 @@ defmodule GenMCP.Suite do
         extensions: build_extensions(opts),
         server_info: build_server_info(opts),
         session_id: init_data.session_id,
+        subscribed_uris: MapSet.new(),
         token_key: random_string(64),
         trackers: empty_trackers(),
 
