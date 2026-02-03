@@ -440,7 +440,7 @@ defmodule GenMCP.SuiteTest do
       assert {400,
               %{
                 code: -32_000,
-                data: %{version: "2024-01-01", supported: ["2025-06-18"]},
+                data: %{version: "2024-01-01", supported: ["2025-06-18", "2025-11-25"]},
                 message: "Unsupported protocol version"
               }} = check_error(reason)
     end

@@ -328,11 +328,12 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
     |> send_resp(status, body)
   end
 
-  defp send_error(conn, reason, _msg_id) do
+  defp send_error(conn, reason, msg_id) do
     case RpcError.cast_error(reason) do
       {status, payload} ->
         payload = %JSONRPCErrorResponse{
           error: payload,
+          id: msg_id,
           jsonrpc: "2.0"
         }
 
@@ -454,11 +455,12 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
   end
 
   defp send_error_response_chunk(conn, reason) do
-    _msg_id = conn.private.gen_mcp_client_request_id
+    msg_id = conn.private.gen_mcp_client_request_id
     {_status, error_payload} = RpcError.cast_error(reason)
 
     payload = %JSONRPCErrorResponse{
       error: error_payload,
+      id: msg_id,
       jsonrpc: "2.0"
     }
 
