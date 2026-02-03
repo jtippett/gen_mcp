@@ -231,4 +231,29 @@ defmodule GenMCP do
   def notify_resource_updated(session_id, uri) do
     GenMCP.Mux.call_session(session_id, {:notify_resource_updated, uri})
   end
+
+  @doc """
+  Completes a task with a result or error.
+
+  This function is used to mark a task as completed (with a result) or failed
+  (with an error). The task must have been previously created in the task store.
+
+  ## Parameters
+
+  - `session_id` - The session identifier
+  - `task_id` - The task identifier to complete
+  - `outcome` - Either `{:ok, result}` to mark as completed, or `{:error, reason}` to mark as failed
+
+  ## Returns
+
+  - `:ok` - The task was successfully completed/failed
+  - `{:error, :not_found}` - The task does not exist
+  - `{:error, :no_task_store}` - No task store is configured for this session
+  - `{:error, {:session_not_found, session_id}}` - The session does not exist
+  """
+  @spec complete_task(session_id :: String.t(), task_id :: String.t(), outcome :: {:ok, term()} | {:error, term()}) ::
+          :ok | {:error, term()}
+  def complete_task(session_id, task_id, outcome) do
+    GenMCP.Mux.call_session(session_id, {:complete_task, task_id, outcome})
+  end
 end

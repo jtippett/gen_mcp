@@ -39,6 +39,11 @@ defmodule GenMCP.Suite do
         type: {:or, [:atom, :mod_arg]},
         default: nil,
         doc: "A `GenMCP.Suite.SessionController` implementation"
+      ],
+      task_store: [
+        type: {:or, [nil, {:tuple, [:atom, :keyword_list]}]},
+        default: nil,
+        doc: "Optional task store module and options for durable task tracking"
       ]
     )
 
@@ -90,6 +95,8 @@ defmodule GenMCP.Suite do
       :server_info,
       :session_id,
       :subscribed_uris,
+      :task_store,
+      :task_store_state,
       :token_key,
       :tool_names,
       :tools_map,
@@ -324,6 +331,46 @@ defmodule GenMCP.Suite do
     end
   end
 
+  # Task handlers - only active when task_store is configured
+
+  def handle_request(%MCP.ListTasksRequest{}, channel, %{task_store: ts} = state)
+      when ts != nil do
+    {:ok, tasks, task_store_state} =
+      state.task_store.list(channel.assigns[:session_id] || state.session_id, state.task_store_state)
+
+    mcp_tasks = Enum.map(tasks, &task_to_mcp/1)
+    result = %MCP.ListTasksResult{tasks: mcp_tasks}
+    {:reply, {:result, result}, %{state | task_store_state: task_store_state}}
+  end
+
+  def handle_request(%MCP.GetTaskRequest{} = req, _channel, %{task_store: ts} = state)
+      when ts != nil do
+    task_id = req.params.taskId
+
+    case state.task_store.get(task_id, state.task_store_state) do
+      {:ok, task, task_store_state} ->
+        result = task_to_mcp(task)
+        {:reply, {:result, result}, %{state | task_store_state: task_store_state}}
+
+      {:error, :not_found} ->
+        {:reply, {:error, :invalid_params, "Task not found"}, state}
+    end
+  end
+
+  def handle_request(%MCP.CancelTaskRequest{} = req, _channel, %{task_store: ts} = state)
+      when ts != nil do
+    task_id = req.params.taskId
+
+    case state.task_store.update(task_id, %{status: :cancelled}, state.task_store_state) do
+      {:ok, task, task_store_state} ->
+        result = task_to_mcp(task)
+        {:reply, {:result, result}, %{state | task_store_state: task_store_state}}
+
+      {:error, :not_found} ->
+        {:reply, {:error, :invalid_params, "Task not found"}, state}
+    end
+  end
+
   def handle_request(%MCP.ListenerRequest{}, sc_channel, state) do
     case session_listener_channel_change(state, {:open, sc_channel}) do
       {:ok, state} -> {:reply, :stream, state}
@@ -512,6 +559,47 @@ defmodule GenMCP.Suite do
     end
   end
 
+  @doc """
+  Completes a task with a result or error.
+
+  Returns:
+  - `{:ok, state}` - when the task was successfully updated
+  - `{:error, :not_found}` - when the task does not exist
+  - `{:error, :no_task_store}` - when no task store is configured
+  """
+  @spec complete_task(String.t(), {:ok, term()} | {:error, term()}, State.t()) ::
+          {:ok, State.t()} | {:error, :not_found | :no_task_store}
+  def complete_task(_task_id, _outcome, %{task_store: nil}) do
+    {:error, :no_task_store}
+  end
+
+  def complete_task(task_id, outcome, state) do
+    {status, updates} =
+      case outcome do
+        {:ok, result} -> {:completed, %{result: result}}
+        {:error, error} -> {:failed, %{error: error}}
+      end
+
+    updates = Map.put(updates, :status, status)
+
+    case state.task_store.update(task_id, updates, state.task_store_state) do
+      {:ok, task, task_store_state} ->
+        # Send notification if listener is active
+        if state.sc_channel.status != :closed do
+          notification = %MCP.TaskStatusNotification{
+            params: task_to_mcp(task)
+          }
+
+          send(state.sc_channel.client, {:"$gen_mcp", :notification, notification})
+        end
+
+        {:ok, %{state | task_store_state: task_store_state}}
+
+      {:error, :not_found} ->
+        {:error, :not_found}
+    end
+  end
+
   defp session_listener_channel_change(state, event) do
     %{
       sc_mod: sc_mod,
@@ -667,6 +755,8 @@ defmodule GenMCP.Suite do
   # Init channel is generally the InitializationRequest channel but in the case
   # of a session restore it can be any request, or notification
   defp initialize_from(init_data, init_channel, opts) do
+    {task_store, task_store_state} = initialize_task_store(opts)
+
     state =
       %State{
         client_capabilities: init_data.client_capabilities,
@@ -675,6 +765,8 @@ defmodule GenMCP.Suite do
         server_info: build_server_info(opts),
         session_id: init_data.session_id,
         subscribed_uris: MapSet.new(),
+        task_store: task_store,
+        task_store_state: task_store_state,
         token_key: random_string(64),
         trackers: empty_trackers(),
 
@@ -702,6 +794,25 @@ defmodule GenMCP.Suite do
     {:ok, state}
   end
 
+  defp initialize_task_store(opts) do
+    case Keyword.get(opts, :task_store) do
+      nil -> {nil, nil}
+      {mod, store_opts} ->
+        {:ok, store_state} = mod.init(store_opts)
+        {mod, store_state}
+    end
+  end
+
+  defp task_to_mcp(task) do
+    %MCP.Task{
+      taskId: task.id,
+      status: task.status,
+      createdAt: DateTime.to_iso8601(task.created_at),
+      lastUpdatedAt: DateTime.to_iso8601(task.updated_at),
+      ttl: nil
+    }
+  end
+
   defp monitor_sc_channel(%Channel{client: pid}) when is_pid(pid) do
     _mref = :erlang.monitor(:process, pid, tag: :SC_CHAN_DOWN)
   end
@@ -719,12 +830,14 @@ defmodule GenMCP.Suite do
 
   defp capabilities(state) do
     has_resources = map_size(state.resource_repos) > 0
+    has_tasks = state.task_store != nil
 
     [
       tools: map_size(state.tools_map) > 0,
       prompts: map_size(state.prompt_repos) > 0,
       resources:
-        if(has_resources, do: %{subscribe: true}, else: false)
+        if(has_resources, do: %{subscribe: true}, else: false),
+      tasks: has_tasks
     ]
   end
 

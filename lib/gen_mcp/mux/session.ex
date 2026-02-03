@@ -208,6 +208,16 @@ defmodule GenMCP.Mux.Session do
     {:reply, result, state}
   end
 
+  def handle_call({:complete_task, task_id, outcome}, _from, state) do
+    case state.server_mod.complete_task(task_id, outcome, state.server_state) do
+      {:ok, server_state} ->
+        {:reply, :ok, %{state | server_state: server_state}}
+
+      {:error, _} = err ->
+        {:reply, err, state}
+    end
+  end
+
   # TODO session timeout should be handled by the server, so if there is any
   # async tool in progress or GET stream it could return {:snooze, ms} | :stop
 
