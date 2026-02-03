@@ -22,7 +22,8 @@ defmodule GenMCP.Validator do
       GenMCP.MCP.CallToolRequest,
       GenMCP.MCP.ListTasksRequest,
       GenMCP.MCP.GetTaskRequest,
-      GenMCP.MCP.CancelTaskRequest
+      GenMCP.MCP.CancelTaskRequest,
+      GenMCP.MCP.CreateMessageRequest
       # GenMCP.MCP.SetLevelRequest,
       # GenMCP.MCP.CompleteRequest
     ],

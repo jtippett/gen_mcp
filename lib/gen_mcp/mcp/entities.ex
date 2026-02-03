@@ -229,7 +229,7 @@ defmodule GenMCP.MCP.AudioContent do
         type: "object"
       },
       annotations: GenMCP.MCP.Annotations,
-      data: string_of("byte", description: "The base64-encoded audio data."),
+      data: string(description: "The base64-encoded audio data."),
       mimeType:
         string(
           description: ~SD"""
@@ -264,7 +264,7 @@ defmodule GenMCP.MCP.BlobResourceContents do
         type: "object"
       },
       blob:
-        string_of("byte",
+        string(
           description: ~SD"""
           A base64-encoded string representing the binary data of the item.
           """
@@ -1350,7 +1350,7 @@ defmodule GenMCP.MCP.ImageContent do
         type: "object"
       },
       annotations: GenMCP.MCP.Annotations,
-      data: string_of("byte", description: "The base64-encoded image data."),
+      data: string(description: "The base64-encoded image data."),
       mimeType:
         string(
           description: ~SD"""
@@ -1580,7 +1580,7 @@ end
 defmodule GenMCP.MCP.JSONRPCErrorResponse do
   use JSV.Schema
 
-  JsonDerive.auto(%{}, [:error, :id, :jsonrpc])
+  JsonDerive.auto(%{}, [:error, :jsonrpc])
 
   defschema %{
     description: ~SD"""

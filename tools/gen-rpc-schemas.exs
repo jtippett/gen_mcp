@@ -1003,8 +1003,14 @@ defmodule Generator do
       "uri" ->
         CodeWrapper.of(:uri, [format_schema_to_list(schema)])
 
-      format when format in ["byte", "uri-template"] ->
-        CodeWrapper.of(:string_of, [format, format_schema_to_list(schema)])
+      # uri-template is a valid format that JSV supports
+      "uri-template" ->
+        CodeWrapper.of(:string_of, ["uri-template", format_schema_to_list(schema)])
+
+      # "byte" format is just documentation that the string is base64-encoded.
+      # JSV doesn't support "byte" as a format validator, so we use plain string.
+      "byte" ->
+        CodeWrapper.of(:string, [format_schema_to_list(schema)])
     end
   end
 
