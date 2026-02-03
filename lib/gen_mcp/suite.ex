@@ -603,6 +603,93 @@ defmodule GenMCP.Suite do
     end
   end
 
+  @doc """
+  Requests user input from the client via elicitation.
+
+  This is a server-to-client request - the server sends an elicitation request
+  to the client asking for user input. The client will respond with an
+  ElicitResult containing the user's action (accept, decline, or cancel) and
+  optionally the submitted content.
+
+  ## Parameters
+
+  - `channel` - The channel to send the request on
+  - `params` - Elicitation parameters map containing:
+    - For form mode: `%{message: "...", requestedSchema: %{...}}`
+    - For URL mode: `%{mode: "url", url: "https://...", message: "...", elicitationId: "..."}`
+
+  ## Returns
+
+  - `{:ok, %ElicitResult{}}` - User response with action and optional content
+  - `{:error, :not_supported}` - Client doesn't support elicitation
+  - `{:error, :channel_closed}` - The channel is closed
+  - `{:error, :timeout}` - Request timed out waiting for response
+
+  ## Note
+
+  This function sends the elicitation request and waits for the response
+  synchronously. The timeout is configurable via the optional third parameter
+  (defaults to 5 minutes).
+  """
+  @spec elicit(Channel.t(), map(), timeout()) ::
+          {:ok, MCP.ElicitResult.t()} | {:error, term()}
+  def elicit(channel, params, timeout \\ to_timeout(minute: 5))
+
+  def elicit(%Channel{status: :closed}, _params, _timeout) do
+    {:error, :channel_closed}
+  end
+
+  def elicit(%Channel{} = channel, params, timeout) do
+    # Generate a unique request ID
+    request_id = generate_request_id()
+
+    # Build the elicitation request params based on mode
+    request_params = build_elicit_params(params)
+
+    # Create the ElicitRequest
+    request = %MCP.ElicitRequest{
+      id: request_id,
+      params: request_params
+    }
+
+    # Send the request to the client and wait for response
+    send(channel.client, {:"$gen_mcp", :server_request, request})
+
+    # Wait for the response
+    receive do
+      {:"$gen_mcp", :server_response, ^request_id, {:ok, result}} ->
+        {:ok, result}
+
+      {:"$gen_mcp", :server_response, ^request_id, {:error, reason}} ->
+        {:error, reason}
+    after
+      timeout ->
+        {:error, :timeout}
+    end
+  end
+
+  defp build_elicit_params(%{mode: "url"} = params) do
+    %MCP.ElicitRequestURLParams{
+      mode: "url",
+      url: params[:url] || params["url"],
+      message: params[:message] || params["message"],
+      elicitationId: params[:elicitationId] || params["elicitationId"] || generate_request_id()
+    }
+  end
+
+  defp build_elicit_params(params) do
+    # Default to form mode
+    %MCP.ElicitRequestFormParams{
+      mode: "form",
+      message: params[:message] || params["message"],
+      requestedSchema: params[:requestedSchema] || params["requestedSchema"]
+    }
+  end
+
+  defp generate_request_id do
+    :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+  end
+
   defp session_listener_channel_change(state, event) do
     %{
       sc_mod: sc_mod,

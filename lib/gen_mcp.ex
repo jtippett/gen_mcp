@@ -260,4 +260,51 @@ defmodule GenMCP do
   def complete_task(session_id, task_id, outcome) do
     GenMCP.Mux.call_session(session_id, {:complete_task, task_id, outcome})
   end
+
+  @doc """
+  Requests user input from the client via elicitation.
+
+  The client must support elicitation (check client_capabilities.elicitation).
+  This is a server-to-client request - the server asks the client to prompt
+  the user for information.
+
+  ## Parameters
+
+  - `channel` - The channel to send the request on
+  - `params` - Elicitation parameters. Can be either:
+    - Form params: `%{mode: "form", message: "...", requestedSchema: %{...}}`
+    - URL params: `%{mode: "url", url: "https://...", message: "..."}`
+
+  ## Returns
+
+  - `{:ok, %ElicitResult{}}` - User response
+  - `{:error, :not_supported}` - Client doesn't support elicitation
+  - `{:error, :timeout}` - Request timed out
+  - `{:error, reason}` - Other error
+
+  ## Example
+
+      case GenMCP.elicit(channel, %{
+        mode: "form",
+        message: "Please enter your API key",
+        requestedSchema: %{
+          type: "object",
+          properties: %{
+            api_key: %{type: "string", title: "API Key"}
+          }
+        }
+      }) do
+        {:ok, %{action: :accept, content: content}} ->
+          # Use the input
+        {:ok, %{action: :decline}} ->
+          {:error, "User declined"}
+        {:error, reason} ->
+          {:error, reason}
+      end
+  """
+  @spec elicit(channel :: Channel.t(), params :: map()) ::
+          {:ok, MCP.ElicitResult.t()} | {:error, term()}
+  def elicit(channel, params) do
+    GenMCP.Suite.elicit(channel, params)
+  end
 end

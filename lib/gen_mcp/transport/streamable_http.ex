@@ -410,6 +410,14 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
     end
   end
 
+  # Server-to-client requests (like elicitation)
+  defp handle_message(conn, {:"$gen_mcp", :server_request, request}) do
+    case send_request_chunk(conn, request) do
+      {:ok, conn} -> conn |> reset_keepalive() |> stream_loop()
+      {:error, :closed} -> stream_closed(conn)
+    end
+  end
+
   defp handle_message(conn, {:"$gen_mcp", :raw_message, data}) do
     case send_stream_message(conn, data) do
       {:ok, conn} -> conn |> reset_keepalive() |> stream_loop()
@@ -469,6 +477,10 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
 
   defp send_notification_chunk(conn, notification) do
     send_stream_message(conn, json_encode(notification))
+  end
+
+  defp send_request_chunk(conn, request) do
+    send_stream_message(conn, json_encode(request))
   end
 
   defp send_stream_message(conn, data) do
