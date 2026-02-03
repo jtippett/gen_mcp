@@ -67,6 +67,9 @@ defmodule GenMCP.MCP.ModMap do
         "CreateMessageRequestParams" => GenMCP.MCP.CreateMessageRequestParams,
         "CreateMessageResult" => GenMCP.MCP.CreateMessageResult,
         "CreateTaskResult" => GenMCP.MCP.CreateTaskResult,
+        "ElicitRequest" => GenMCP.MCP.ElicitRequest,
+        "ElicitRequestFormParams" => GenMCP.MCP.ElicitRequestFormParams,
+        "ElicitRequestParams" => GenMCP.MCP.ElicitRequestParams,
         "ElicitRequestURLParams" => GenMCP.MCP.ElicitRequestURLParams,
         "ElicitResult" => GenMCP.MCP.ElicitResult,
         "ElicitationCompleteNotification" => GenMCP.MCP.ElicitationCompleteNotification,
@@ -91,6 +94,7 @@ defmodule GenMCP.MCP.ModMap do
         "JSONRPCRequest" => GenMCP.MCP.JSONRPCRequest,
         "JSONRPCResponse" => GenMCP.MCP.JSONRPCResponse,
         "JSONRPCResultResponse" => GenMCP.MCP.JSONRPCResultResponse,
+        "LegacyTitledEnumSchema" => GenMCP.MCP.LegacyTitledEnumSchema,
         "ListPromptsRequest" => GenMCP.MCP.ListPromptsRequest,
         "ListPromptsResult" => GenMCP.MCP.ListPromptsResult,
         "ListResourceTemplatesRequest" => GenMCP.MCP.ListResourceTemplatesRequest,
@@ -109,6 +113,7 @@ defmodule GenMCP.MCP.ModMap do
         "NumberSchema" => GenMCP.MCP.NumberSchema,
         "PaginatedRequestParams" => GenMCP.MCP.PaginatedRequestParams,
         "PingRequest" => GenMCP.MCP.PingRequest,
+        "PrimitiveSchemaDefinition" => GenMCP.MCP.PrimitiveSchemaDefinition,
         "ProgressNotification" => GenMCP.MCP.ProgressNotification,
         "ProgressNotificationParams" => GenMCP.MCP.ProgressNotificationParams,
         "ProgressToken" => GenMCP.MCP.ProgressToken,
@@ -142,6 +147,8 @@ defmodule GenMCP.MCP.ModMap do
         "TaskStatusNotificationParams" => GenMCP.MCP.TaskStatusNotificationParams,
         "TextContent" => GenMCP.MCP.TextContent,
         "TextResourceContents" => GenMCP.MCP.TextResourceContents,
+        "TitledMultiSelectEnumSchema" => GenMCP.MCP.TitledMultiSelectEnumSchema,
+        "TitledSingleSelectEnumSchema" => GenMCP.MCP.TitledSingleSelectEnumSchema,
         "Tool" => GenMCP.MCP.Tool,
         "ToolAnnotations" => GenMCP.MCP.ToolAnnotations,
         "ToolChoice" => GenMCP.MCP.ToolChoice,
@@ -150,7 +157,9 @@ defmodule GenMCP.MCP.ModMap do
         "ToolUseContent" => GenMCP.MCP.ToolUseContent,
         "URLElicitationRequiredError" => GenMCP.MCP.URLElicitationRequiredError,
         "UnsubscribeRequest" => GenMCP.MCP.UnsubscribeRequest,
-        "UnsubscribeRequestParams" => GenMCP.MCP.UnsubscribeRequestParams
+        "UnsubscribeRequestParams" => GenMCP.MCP.UnsubscribeRequestParams,
+        "UntitledMultiSelectEnumSchema" => GenMCP.MCP.UntitledMultiSelectEnumSchema,
+        "UntitledSingleSelectEnumSchema" => GenMCP.MCP.UntitledSingleSelectEnumSchema
       }
     }
   end
@@ -868,6 +877,103 @@ defmodule GenMCP.MCP.CreateTaskResult do
   @type t :: %__MODULE__{}
 end
 
+defmodule GenMCP.MCP.ElicitRequest do
+  use JSV.Schema
+
+  JsonDerive.auto(%{method: "elicitation/create", jsonrpc: "2.0"}, [:id, :params])
+
+  @skip_keys [:method, :jsonrpc]
+
+  defschema %{
+    description: ~SD"""
+    A request from the server to elicit additional information from the
+    user via the client.
+    """,
+    properties: %{
+      id: GenMCP.MCP.RequestId,
+      jsonrpc: const("2.0"),
+      method: const("elicitation/create"),
+      params: GenMCP.MCP.ElicitRequestParams
+    },
+    required: [:id, :jsonrpc, :method, :params],
+    title: "MCP:ElicitRequest",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.ElicitRequestFormParams do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:message, :requestedSchema])
+
+  defschema %{
+    description: ~SD"""
+    The parameters for a request to elicit non-sensitive information from
+    the user via a form in the client.
+    """,
+    properties: %{
+      _meta: %{
+        additionalProperties: %{},
+        description: ~SD"""
+        See [General fields:
+        `_meta`](/specification/2025-11-25/basic/index#meta) for notes on
+        `_meta` usage.
+        """,
+        properties: %{progressToken: GenMCP.MCP.ProgressToken},
+        type: "object"
+      },
+      message:
+        string(
+          description: ~SD"""
+          The message to present to the user describing what information is
+          being requested.
+          """
+        ),
+      mode: const("form"),
+      requestedSchema: %{
+        description: ~SD"""
+        A restricted subset of JSON Schema. Only top-level properties are
+        allowed, without nesting.
+        """,
+        properties: %{
+          "$schema": string(),
+          properties: %{
+            additionalProperties: GenMCP.MCP.PrimitiveSchemaDefinition,
+            type: "object"
+          },
+          required: array_of(string()),
+          type: const("object")
+        },
+        required: ["properties", "type"],
+        type: "object"
+      },
+      task: GenMCP.MCP.TaskMetadata
+    },
+    required: [:message, :requestedSchema],
+    title: "MCP:ElicitRequestFormParams",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.ElicitRequestParams do
+  use JSV.Schema
+
+  def json_schema do
+    %{
+      anyOf: [GenMCP.MCP.ElicitRequestURLParams, GenMCP.MCP.ElicitRequestFormParams],
+      description: ~SD"""
+      The parameters for a request to elicit additional information from the
+      user via the client.
+      """,
+      title: "MCP:ElicitRequestParams"
+    }
+  end
+end
+
 defmodule GenMCP.MCP.ElicitRequestURLParams do
   use JSV.Schema
 
@@ -1580,7 +1686,7 @@ end
 defmodule GenMCP.MCP.JSONRPCErrorResponse do
   use JSV.Schema
 
-  JsonDerive.auto(%{}, [:error, :id, :jsonrpc])
+  JsonDerive.auto(%{}, [:error, :jsonrpc])
 
   defschema %{
     description: ~SD"""
@@ -1648,6 +1754,39 @@ defmodule GenMCP.MCP.JSONRPCResultResponse do
     },
     required: [:id, :jsonrpc, :result],
     title: "MCP:JSONRPCResultResponse",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.LegacyTitledEnumSchema do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:enum, :type])
+
+  defschema %{
+    description: ~SD"""
+    Use TitledSingleSelectEnumSchema instead. This interface will be
+    removed in a future version.
+    """,
+    properties: %{
+      default: string(),
+      description: string(),
+      enum: array_of(string()),
+      enumNames: %{
+        description: ~SD"""
+        (Legacy) Display names for enum values. Non-standard according to JSON
+        schema 2020-12.
+        """,
+        items: string(),
+        type: "array"
+      },
+      title: string(),
+      type: const("string")
+    },
+    required: [:enum, :type],
+    title: "MCP:LegacyTitledEnumSchema",
     type: "object"
   }
 
@@ -2222,6 +2361,30 @@ defmodule GenMCP.MCP.PingRequest do
   }
 
   @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.PrimitiveSchemaDefinition do
+  use JSV.Schema
+
+  def json_schema do
+    %{
+      anyOf: [
+        GenMCP.MCP.StringSchema,
+        GenMCP.MCP.NumberSchema,
+        GenMCP.MCP.BooleanSchema,
+        GenMCP.MCP.UntitledSingleSelectEnumSchema,
+        GenMCP.MCP.TitledSingleSelectEnumSchema,
+        GenMCP.MCP.UntitledMultiSelectEnumSchema,
+        GenMCP.MCP.TitledMultiSelectEnumSchema,
+        GenMCP.MCP.LegacyTitledEnumSchema
+      ],
+      description: ~SD"""
+      Restricted schema definitions that only allow primitive types without
+      nested objects or arrays.
+      """,
+      title: "MCP:PrimitiveSchemaDefinition"
+    }
+  end
 end
 
 defmodule GenMCP.MCP.ProgressNotification do
@@ -3444,6 +3607,97 @@ defmodule GenMCP.MCP.TextResourceContents do
   @type t :: %__MODULE__{}
 end
 
+defmodule GenMCP.MCP.TitledMultiSelectEnumSchema do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:items, :type])
+
+  defschema %{
+    description: ~SD"""
+    Schema for multiple-selection enumeration with display titles for each
+    option.
+    """,
+    properties: %{
+      default: %{
+        description: "Optional default value.",
+        items: string(),
+        type: "array"
+      },
+      description: string(description: "Optional description for the enum field."),
+      items: %{
+        description: ~SD"""
+        Schema for array items with enum options and display labels.
+        """,
+        properties: %{
+          anyOf: %{
+            description: ~SD"""
+            Array of enum options with values and display labels.
+            """,
+            items: %{
+              properties: %{
+                const: string(description: "The constant enum value."),
+                title: string(description: "Display title for this option.")
+              },
+              required: ["const", "title"],
+              type: "object"
+            },
+            type: "array"
+          }
+        },
+        required: ["anyOf"],
+        type: "object"
+      },
+      maxItems: integer(description: "Maximum number of items to select."),
+      minItems: integer(description: "Minimum number of items to select."),
+      title: string(description: "Optional title for the enum field."),
+      type: const("array")
+    },
+    required: [:items, :type],
+    title: "MCP:TitledMultiSelectEnumSchema",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.TitledSingleSelectEnumSchema do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:oneOf, :type])
+
+  defschema %{
+    description: ~SD"""
+    Schema for single-selection enumeration with display titles for each
+    option.
+    """,
+    properties: %{
+      default: string(description: "Optional default value."),
+      description: string(description: "Optional description for the enum field."),
+      oneOf: %{
+        description: ~SD"""
+        Array of enum options with values and display labels.
+        """,
+        items: %{
+          properties: %{
+            const: string(description: "The enum value."),
+            title: string(description: "Display label for this option.")
+          },
+          required: ["const", "title"],
+          type: "object"
+        },
+        type: "array"
+      },
+      title: string(description: "Optional title for the enum field."),
+      type: const("string")
+    },
+    required: [:oneOf, :type],
+    title: "MCP:TitledSingleSelectEnumSchema",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
 defmodule GenMCP.MCP.Tool do
   use JSV.Schema
 
@@ -3882,6 +4136,78 @@ defmodule GenMCP.MCP.UnsubscribeRequestParams do
     },
     required: [:uri],
     title: "MCP:UnsubscribeRequestParams",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.UntitledMultiSelectEnumSchema do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:items, :type])
+
+  defschema %{
+    description: ~SD"""
+    Schema for multiple-selection enumeration without display titles for
+    options.
+    """,
+    properties: %{
+      default: %{
+        description: "Optional default value.",
+        items: string(),
+        type: "array"
+      },
+      description: string(description: "Optional description for the enum field."),
+      items: %{
+        description: "Schema for the array items.",
+        properties: %{
+          enum: %{
+            description: "Array of enum values to choose from.",
+            items: string(),
+            type: "array"
+          },
+          type: const("string")
+        },
+        required: ["enum", "type"],
+        type: "object"
+      },
+      maxItems: integer(description: "Maximum number of items to select."),
+      minItems: integer(description: "Minimum number of items to select."),
+      title: string(description: "Optional title for the enum field."),
+      type: const("array")
+    },
+    required: [:items, :type],
+    title: "MCP:UntitledMultiSelectEnumSchema",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.UntitledSingleSelectEnumSchema do
+  use JSV.Schema
+
+  JsonDerive.auto(%{}, [:enum, :type])
+
+  defschema %{
+    description: ~SD"""
+    Schema for single-selection enumeration without display titles for
+    options.
+    """,
+    properties: %{
+      default: string(description: "Optional default value."),
+      description: string(description: "Optional description for the enum field."),
+      enum: %{
+        description: "Array of enum values to choose from.",
+        items: string(),
+        type: "array"
+      },
+      title: string(description: "Optional title for the enum field."),
+      type: const("string")
+    },
+    required: [:enum, :type],
+    title: "MCP:UntitledSingleSelectEnumSchema",
     type: "object"
   }
 

@@ -23,7 +23,8 @@ defmodule GenMCP.Validator do
       GenMCP.MCP.ListTasksRequest,
       GenMCP.MCP.GetTaskRequest,
       GenMCP.MCP.CancelTaskRequest,
-      GenMCP.MCP.CreateMessageRequest
+      GenMCP.MCP.CreateMessageRequest,
+      GenMCP.MCP.ElicitRequest
       # GenMCP.MCP.SetLevelRequest,
       # GenMCP.MCP.CompleteRequest
     ],
@@ -31,7 +32,8 @@ defmodule GenMCP.Validator do
       GenMCP.MCP.CancelledNotification,
       GenMCP.MCP.InitializedNotification,
       GenMCP.MCP.ProgressNotification,
-      GenMCP.MCP.RootsListChangedNotification
+      GenMCP.MCP.RootsListChangedNotification,
+      GenMCP.MCP.ElicitationCompleteNotification
     ]
   ]
 

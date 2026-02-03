@@ -224,10 +224,10 @@ defmodule Generator do
         []
 
       :UntitledMultiSelectEnumSchema ->
-        :nogen
+        []
 
       :UntitledSingleSelectEnumSchema ->
-        :nogen
+        []
 
       :URLElicitationRequiredError ->
         []
@@ -296,16 +296,16 @@ defmodule Generator do
         :nogen
 
       :ElicitRequest ->
-        :nogen
+        [rpc_request: true]
 
       :ElicitRequestFormParams ->
-        :nogen
+        []
 
       :ElicitRequestURLParams ->
         []
 
       :ElicitRequestParams ->
-        :nogen
+        []
 
       :ElicitResult ->
         []
@@ -380,7 +380,7 @@ defmodule Generator do
         []
 
       :LegacyTitledEnumSchema ->
-        :nogen
+        []
 
       :ListPromptsResult ->
         []
@@ -443,7 +443,7 @@ defmodule Generator do
         :nogen
 
       :PrimitiveSchemaDefinition ->
-        :nogen
+        []
 
       :ProgressNotification ->
         [notification: true]
@@ -575,10 +575,10 @@ defmodule Generator do
         []
 
       :TitledMultiSelectEnumSchema ->
-        :nogen
+        []
 
       :TitledSingleSelectEnumSchema ->
-        :nogen
+        []
 
       :Tool ->
         []
@@ -961,7 +961,7 @@ defmodule Generator do
       {:val, %{type: "string", format: _} = schema} ->
         to_string_format(schema)
 
-      {:val, %{const: value} = constschema} ->
+      {:val, %{const: value} = constschema} when is_binary(value) or is_integer(value) ->
         :ok =
           case constschema do
             %{type: "string"} -> :ok
@@ -969,8 +969,6 @@ defmodule Generator do
             %{type: other} -> raise "unsupported const type: #{inspect(other)}"
             _ -> :ok
           end
-
-        true = is_binary(value) or is_integer(value)
 
         # If the const is a method we may have defined it as a default
         extra_args =
