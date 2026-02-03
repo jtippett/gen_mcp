@@ -1580,7 +1580,7 @@ end
 defmodule GenMCP.MCP.JSONRPCErrorResponse do
   use JSV.Schema
 
-  JsonDerive.auto(%{}, [:error, :jsonrpc])
+  JsonDerive.auto(%{}, [:error, :id, :jsonrpc])
 
   defschema %{
     description: ~SD"""
