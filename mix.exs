@@ -76,8 +76,8 @@ defmodule GenMCP.MixProject do
   defp mcp_schemas do
     {:modelcontextprotocol,
      git: "https://github.com/modelcontextprotocol/modelcontextprotocol.git",
-     sparse: "schema/2025-06-18",
-     ref: "2025-06-18",
+     sparse: "schema/2025-11-25",
+     ref: "2025-11-25",
      only: [:dev, :test],
      compile: false,
      runtime: false,
