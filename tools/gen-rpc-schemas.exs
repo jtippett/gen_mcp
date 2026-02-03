@@ -362,7 +362,7 @@ defmodule Generator do
         []
 
       :JSONRPCErrorResponse ->
-        []
+        [keep_nil_fields: [:id]]
 
       :JSONRPCMessage ->
         :nogen
@@ -1034,10 +1034,12 @@ defmodule Generator do
     skip_keys = Keyword.get(opts, :skip_keys, nil)
     serialize_merge = Keyword.get(opts, :serialize_merge, %{})
 
+    keep_nil_fields = Keyword.get(opts, :keep_nil_fields, [])
+
     serialize_keep =
       case schema do
-        %{required: [_ | _] = keys} -> keys -- (skip_keys || [])
-        _ -> []
+        %{required: [_ | _] = keys} -> (keys -- (skip_keys || [])) ++ keep_nil_fields
+        _ -> keep_nil_fields
       end
 
     case kind do
