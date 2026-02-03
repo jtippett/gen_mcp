@@ -24,3 +24,6 @@ gen_mcp-*.tar
 
 .env*
 .DS_Store
+
+# Git worktrees
+/.worktrees/
