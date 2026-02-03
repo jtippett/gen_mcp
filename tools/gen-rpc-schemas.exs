@@ -100,7 +100,7 @@ defmodule Generator do
 
   def run do
     schema =
-      "deps/modelcontextprotocol/schema/2025-06-18/schema.json"
+      "deps/modelcontextprotocol/schema/2025-11-25/schema.json"
       |> File.read!()
       |> Jason.decode!(keys: :atoms)
 
@@ -550,7 +550,7 @@ defmodule Generator do
       def json_schema do
         %{
           additionalProperties: %{},
-          description: "See [General Fields](https://modelcontextprotocol.io/specification/2025-06-18/basic#general-fields) for notes on _meta usage.",
+          description: "See [General Fields](https://modelcontextprotocol.io/specification/2025-11-25/basic#general-fields) for notes on _meta usage.",
           properties: %{progressToken: #{inspect(base_module())}.ProgressToken},
           type: "object"
         }
@@ -563,7 +563,7 @@ defmodule Generator do
       def json_schema do
         %{
           additionalProperties: %{},
-          description: "See [General Fields](https://modelcontextprotocol.io/specification/2025-06-18/basic#general-fields) for notes on _meta usage.",
+          description: "See [General Fields](https://modelcontextprotocol.io/specification/2025-11-25/basic#general-fields) for notes on _meta usage.",
           properties: %{progressToken: #{inspect(base_module())}.ProgressToken},
           type: "object"
         }
