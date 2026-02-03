@@ -296,16 +296,16 @@ defmodule Generator do
         :nogen
 
       :ElicitRequest ->
-        [rpc_request: true]
+        :nogen
 
       :ElicitRequestFormParams ->
-        []
+        :nogen
 
       :ElicitRequestURLParams ->
         []
 
       :ElicitRequestParams ->
-        []
+        :nogen
 
       :ElicitResult ->
         []
@@ -320,7 +320,7 @@ defmodule Generator do
         :nogen
 
       :EnumSchema ->
-        []
+        :nogen
 
       :Error ->
         []
@@ -407,7 +407,7 @@ defmodule Generator do
         []
 
       :LoggingLevel ->
-        :nogen
+        []
 
       :LoggingMessageNotification ->
         :nogen
@@ -416,10 +416,10 @@ defmodule Generator do
         []
 
       :ModelHint ->
-        :nogen
+        []
 
       :ModelPreferences ->
-        :nogen
+        []
 
       :MultiSelectEnumSchema ->
         :nogen
@@ -428,7 +428,7 @@ defmodule Generator do
         :nogen
 
       :NotificationParams ->
-        :nogen
+        []
 
       :NumberSchema ->
         []
@@ -437,7 +437,7 @@ defmodule Generator do
         :nogen
 
       :PaginatedRequestParams ->
-        :nogen
+        []
 
       :PaginatedResult ->
         :nogen
@@ -476,7 +476,7 @@ defmodule Generator do
         :nogen
 
       :RequestParams ->
-        :nogen
+        []
 
       :RequestId ->
         []
@@ -521,10 +521,10 @@ defmodule Generator do
         [notification: true]
 
       :SamplingMessage ->
-        :nogen
+        []
 
       :SamplingMessageContentBlock ->
-        :nogen
+        []
 
       :SingleSelectEnumSchema ->
         :nogen
