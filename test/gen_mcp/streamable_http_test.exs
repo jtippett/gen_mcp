@@ -748,7 +748,7 @@ defmodule GenMCP.StreamableHTTPTest do
 
       expect(ServerMock, :handle_notification, fn notif, state ->
         assert %MCP.RootsListChangedNotification{
-                 params: %{"_meta" => %{}}
+                 params: %MCP.NotificationParams{}
                } = notif
 
         {:noreply, state}
