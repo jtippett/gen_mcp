@@ -203,6 +203,11 @@ defmodule GenMCP.Mux.Session do
     {:stop, {:shutdown, :session_deleted}, :ok, state}
   end
 
+  def handle_call({:notify_resource_updated, uri}, _from, state) do
+    result = state.server_mod.notify_resource_updated(uri, state.server_state)
+    {:reply, result, state}
+  end
+
   # TODO session timeout should be handled by the server, so if there is any
   # async tool in progress or GET stream it could return {:snooze, ms} | :stop
 

@@ -484,6 +484,34 @@ defmodule GenMCP.Suite do
     _ = sc_mod.delete(session_id, sc_state)
   end
 
+  @doc """
+  Notifies subscribed clients that a resource has been updated.
+
+  Returns:
+  - `{:ok, :notified}` - when the URI is subscribed and the notification was sent
+  - `{:ok, :not_subscribed}` - when the URI is not in the subscribed set
+  - `{:ok, :no_listener}` - when the session controller channel is closed
+  """
+  @spec notify_resource_updated(String.t(), State.t()) ::
+          {:ok, :notified | :not_subscribed | :no_listener}
+  def notify_resource_updated(uri, state) do
+    cond do
+      not MapSet.member?(state.subscribed_uris, uri) ->
+        {:ok, :not_subscribed}
+
+      state.sc_channel.status == :closed ->
+        {:ok, :no_listener}
+
+      true ->
+        notification = %MCP.ResourceUpdatedNotification{
+          params: %MCP.ResourceUpdatedNotificationParams{uri: uri}
+        }
+
+        send(state.sc_channel.client, {:"$gen_mcp", :notification, notification})
+        {:ok, :notified}
+    end
+  end
+
   defp session_listener_channel_change(state, event) do
     %{
       sc_mod: sc_mod,
@@ -690,10 +718,13 @@ defmodule GenMCP.Suite do
   end
 
   defp capabilities(state) do
+    has_resources = map_size(state.resource_repos) > 0
+
     [
       tools: map_size(state.tools_map) > 0,
       prompts: map_size(state.prompt_repos) > 0,
-      resources: map_size(state.resource_repos) > 0
+      resources:
+        if(has_resources, do: %{subscribe: true}, else: false)
     ]
   end
 
