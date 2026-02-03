@@ -43,7 +43,6 @@ defmodule GenMCP.SuiteTest do
            } = state
 
     client_init_notif = %MCP.InitializedNotification{
-      method: "notifications/initialized",
       params: %{}
     }
 
@@ -473,7 +472,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply,
               {:result, %GenMCP.MCP.ListToolsResult{_meta: nil, nextCursor: nil, tools: tools}},
               _} =
-               Suite.handle_request(%MCP.ListToolsRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListToolsRequest{id: 1}, build_channel(), state)
 
       assert [
                %Tool{
@@ -644,7 +643,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       assert {:reply, {:result, result}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{resources: resources, nextCursor: _} = result
       assert length(resources) == 2
@@ -676,7 +675,7 @@ defmodule GenMCP.SuiteTest do
 
       # First page
       assert {:reply, {:result, result1}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{
                resources: [%{name: "Page 1"}],
@@ -687,7 +686,8 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:result, result2}, _} =
                Suite.handle_request(
                  %MCP.ListResourcesRequest{
-                   params: %MCP.ListResourcesRequestParams{cursor: pagination}
+                   id: 1,
+                   params: %MCP.PaginatedRequestParams{cursor: pagination}
                  },
                  build_channel(),
                  state
@@ -714,7 +714,7 @@ defmodule GenMCP.SuiteTest do
         )
 
       assert {:reply, {:result, result}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{resources: [], nextCursor: nil} = result
     end
@@ -743,7 +743,7 @@ defmodule GenMCP.SuiteTest do
 
       # First request returns repo1's resources with a cursor to continue to repo2
       assert {:reply, {:result, result1}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{resources: resources1, nextCursor: cursor} = result1
       assert length(resources1) == 2
@@ -755,7 +755,8 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:result, result2}, _} =
                Suite.handle_request(
                  %MCP.ListResourcesRequest{
-                   params: %MCP.ListResourcesRequestParams{cursor: cursor}
+                   id: 1,
+                   params: %MCP.PaginatedRequestParams{cursor: cursor}
                  },
                  build_channel(),
                  state
@@ -793,7 +794,7 @@ defmodule GenMCP.SuiteTest do
 
       # First call should skip the empty repos and return resources from repo3
       assert {:reply, {:result, result}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{resources: resources, nextCursor: nil} = result
       assert length(resources) == 2
@@ -832,7 +833,7 @@ defmodule GenMCP.SuiteTest do
 
       # First call should skip repo1 and return repo2's resource with cursor
       assert {:reply, {:result, result1}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{
                resources: [%{name: "API"}],
@@ -845,7 +846,8 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:result, result2}, _} =
                Suite.handle_request(
                  %MCP.ListResourcesRequest{
-                   params: %MCP.ListResourcesRequestParams{cursor: cursor}
+                   id: 1,
+                   params: %MCP.PaginatedRequestParams{cursor: cursor}
                  },
                  build_channel(),
                  state
@@ -868,7 +870,7 @@ defmodule GenMCP.SuiteTest do
 
       # First request succeeds and returns a valid cursor
       assert {:reply, {:result, result1}, _} =
-               Suite.handle_request(%MCP.ListResourcesRequest{}, build_channel(), state)
+               Suite.handle_request(%MCP.ListResourcesRequest{id: 1}, build_channel(), state)
 
       assert %MCP.ListResourcesResult{
                resources: [%{name: "Page 1"}],
@@ -879,7 +881,8 @@ defmodule GenMCP.SuiteTest do
 
       # Client sends an invalid/tampered pagination token
       invalid_request = %MCP.ListResourcesRequest{
-        params: %MCP.ListResourcesRequestParams{cursor: "invalid-token-from-client"}
+        id: 1,
+        params: %MCP.PaginatedRequestParams{cursor: "invalid-token-from-client"}
       }
 
       assert {:reply, {:error, error}, _} =
@@ -905,6 +908,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{
           uri: "file:///readme.txt"
         }
@@ -933,6 +937,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///index.html"}
       }
 
@@ -960,6 +965,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///data.bin"}
       }
 
@@ -984,6 +990,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///missing.txt"}
       }
 
@@ -1004,6 +1011,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///invalid.txt"}
       }
 
@@ -1031,6 +1039,7 @@ defmodule GenMCP.SuiteTest do
         init_session(resources: [{ResourceRepoMock, :repo1}, {ResourceRepoMock, :repo2}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "http://example.com/resource"}
       }
 
@@ -1047,6 +1056,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMock, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "ftp://example.com/file"}
       }
 
@@ -1068,6 +1078,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [ResourceRepoMock])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///readme.txt"}
       }
 
@@ -1119,6 +1130,7 @@ defmodule GenMCP.SuiteTest do
 
       # Request 1: Private path routes to private repo
       request1 = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///private/secret.txt"}
       }
 
@@ -1131,6 +1143,7 @@ defmodule GenMCP.SuiteTest do
 
       # Request 2: General path routes to general repo
       request2 = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///readme.txt"}
       }
 
@@ -1143,6 +1156,7 @@ defmodule GenMCP.SuiteTest do
 
       # Request 3: Trash path ALSO routes to general repo (first match wins)
       request3 = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///trash/deleted.txt"}
       }
 
@@ -1178,6 +1192,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMockTpl, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///config/app.json"}
       }
 
@@ -1207,6 +1222,7 @@ defmodule GenMCP.SuiteTest do
       state = init_session(resources: [{ResourceRepoMockTpl, :repo1}])
 
       request = %MCP.ReadResourceRequest{
+        id: 1,
         params: %MCP.ReadResourceRequestParams{uri: "file:///otherprefix"}
       }
 
@@ -1246,7 +1262,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:result, result}, _} =
                Suite.handle_request(
-                 %MCP.ListResourceTemplatesRequest{},
+                 %MCP.ListResourceTemplatesRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1291,7 +1307,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:result, result}, _} =
                Suite.handle_request(
-                 %MCP.ListResourceTemplatesRequest{},
+                 %MCP.ListResourceTemplatesRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1319,7 +1335,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:result, result}, _} =
                Suite.handle_request(
-                 %MCP.ListResourceTemplatesRequest{},
+                 %MCP.ListResourceTemplatesRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1351,7 +1367,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:result, result}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{},
+                 %MCP.ListPromptsRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1380,7 +1396,7 @@ defmodule GenMCP.SuiteTest do
       # First page
       assert {:reply, {:result, result1}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{},
+                 %MCP.ListPromptsRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1395,7 +1411,7 @@ defmodule GenMCP.SuiteTest do
       # Second page
       assert {:reply, {:result, result2}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{params: %{cursor: cursor1}},
+                 %MCP.ListPromptsRequest{id: 1, params: %{cursor: cursor1}},
                  build_channel(),
                  state
                )
@@ -1429,7 +1445,7 @@ defmodule GenMCP.SuiteTest do
       # First request
       assert {:reply, {:result, result1}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{},
+                 %MCP.ListPromptsRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1442,7 +1458,7 @@ defmodule GenMCP.SuiteTest do
       # Second request
       assert {:reply, {:result, result2}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{params: %{cursor: cursor1}},
+                 %MCP.ListPromptsRequest{id: 1, params: %{cursor: cursor1}},
                  build_channel(),
                  state
                )
@@ -1455,7 +1471,7 @@ defmodule GenMCP.SuiteTest do
       # Third request
       assert {:reply, {:result, result3}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{params: %{cursor: cursor2}},
+                 %MCP.ListPromptsRequest{id: 1, params: %{cursor: cursor2}},
                  build_channel(),
                  state
                )
@@ -1473,7 +1489,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:error, :invalid_cursor}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{params: %{cursor: "invalid_token"}},
+                 %MCP.ListPromptsRequest{id: 1, params: %{cursor: "invalid_token"}},
                  build_channel(),
                  state
                )
@@ -1487,7 +1503,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:result, result}, _} =
                Suite.handle_request(
-                 %MCP.ListPromptsRequest{},
+                 %MCP.ListPromptsRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1515,6 +1531,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:result, ^result}, _} =
                Suite.handle_request(
                  %MCP.GetPromptRequest{
+                   id: 1,
                    params: %{name: "greeting"}
                  },
                  build_channel(),
@@ -1537,6 +1554,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:result, ^result}, _} =
                Suite.handle_request(
                  %MCP.GetPromptRequest{
+                   id: 1,
                    params: %{
                      name: "analysis",
                      arguments: %{"dataset" => "test.csv"}
@@ -1557,6 +1575,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:error, {:prompt_not_found, "unknown"}}, _} =
                Suite.handle_request(
                  %MCP.GetPromptRequest{
+                   id: 1,
                    params: %{name: "unknown"}
                  },
                  build_channel(),
@@ -1580,6 +1599,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:error, "Missing required argument: dataset"}, _} =
                Suite.handle_request(
                  %MCP.GetPromptRequest{
+                   id: 1,
                    params: %{name: "analysis"}
                  },
                  build_channel(),
@@ -1601,6 +1621,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:error, {:invalid_params, :foo}}, _} =
                Suite.handle_request(
                  %MCP.GetPromptRequest{
+                   id: 1,
                    params: %{name: "analysis"}
                  },
                  build_channel(),
@@ -1631,6 +1652,7 @@ defmodule GenMCP.SuiteTest do
       assert {:reply, {:result, ^result}, _} =
                Suite.handle_request(
                  %MCP.GetPromptRequest{
+                   id: 1,
                    params: %{name: "prompt2"}
                  },
                  build_channel(),
@@ -1645,7 +1667,6 @@ defmodule GenMCP.SuiteTest do
       state = init_session()
 
       cancelled_notif = %MCP.CancelledNotification{
-        method: "notifications/cancelled",
         params: %MCP.CancelledNotificationParams{
           requestId: "some-request-id",
           reason: "User cancelled the operation"
@@ -1660,7 +1681,6 @@ defmodule GenMCP.SuiteTest do
       state = init_session()
 
       roots_changed_notif = %MCP.RootsListChangedNotification{
-        method: "notifications/roots/list_changed",
         params: %{_meta: %{}}
       }
 
@@ -1710,7 +1730,7 @@ defmodule GenMCP.SuiteTest do
 
       assert {:reply, {:result, %MCP.ListToolsResult{tools: tools}}, _} =
                Suite.handle_request(
-                 %MCP.ListToolsRequest{},
+                 %MCP.ListToolsRequest{id: 1},
                  build_channel(),
                  state
                )
@@ -1767,7 +1787,7 @@ defmodule GenMCP.SuiteTest do
 
       # fetch all pages
       req = fn cursor ->
-        %MCP.ListResourcesRequest{params: %MCP.ListResourcesRequestParams{cursor: cursor}}
+        %MCP.ListResourcesRequest{id: 1, params: %MCP.PaginatedRequestParams{cursor: cursor}}
       end
 
       assert {:reply, {:result, %{resources: page1, nextCursor: cursor}}, state} =
@@ -1843,7 +1863,7 @@ defmodule GenMCP.SuiteTest do
 
       # fetch all pages
       req = fn cursor ->
-        %MCP.ListPromptsRequest{params: %MCP.ListPromptsRequestParams{cursor: cursor}}
+        %MCP.ListPromptsRequest{id: 1, params: %MCP.PaginatedRequestParams{cursor: cursor}}
       end
 
       assert {:reply, {:result, %{prompts: page1, nextCursor: cursor}}, state} =
