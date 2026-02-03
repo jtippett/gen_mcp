@@ -108,7 +108,7 @@ defmodule Generator do
 
     confs =
       schema
-      |> Map.fetch!(:definitions)
+      |> Map.fetch!(:"$defs")
       |> Enum.map(fn {name, schema} -> conf(name: name, schema: schema, opts: []) end)
       |> filter_schemas()
       # index by name so we can target schemas by name and add new confs to the
@@ -146,29 +146,27 @@ defmodule Generator do
   defp module_config(name) do
     case name do
       # Custom additions
+      # Params schemas that exist directly in $defs (no swapping needed)
       :CallToolRequestParams ->
-        [rpc_request_params: true]
+        []
 
       :CancelledNotificationParams ->
-        [rpc_request_params: true]
+        []
 
       :GetPromptRequestParams ->
-        [rpc_request_params: true]
+        []
 
       :InitializeRequestParams ->
-        [rpc_request_params: true]
+        []
 
-      :ListPromptsRequestParams ->
-        [rpc_request_params: true]
-
-      :ListResourcesRequestParams ->
-        [rpc_request_params: true]
-
-      :ListResourceTemplatesRequestParams ->
-        [rpc_request_params: true]
+      # These params schemas no longer exist in the 2025-11-25 spec
+      # (they now reference PaginatedRequestParams directly)
+      # :ListPromptsRequestParams
+      # :ListResourcesRequestParams
+      # :ListResourceTemplatesRequestParams
 
       :ReadResourceRequestParams ->
-        [rpc_request_params: true]
+        []
 
       # Existing definitions
 
@@ -200,6 +198,9 @@ defmodule Generator do
       :PingRequest ->
         [rpc_request: true]
 
+      :ProgressNotificationParams ->
+        []
+
       :ReadResourceRequest ->
         [rpc_request: true]
 
@@ -207,11 +208,29 @@ defmodule Generator do
         # [ rpc_request: true]
         :nogen
 
+      :SetLevelRequestParams ->
+        :nogen
+
       :SubscribeRequest ->
         [rpc_request: true]
 
+      :SubscribeRequestParams ->
+        []
+
       :UnsubscribeRequest ->
         [rpc_request: true]
+
+      :UnsubscribeRequestParams ->
+        []
+
+      :UntitledMultiSelectEnumSchema ->
+        :nogen
+
+      :UntitledSingleSelectEnumSchema ->
+        :nogen
+
+      :URLElicitationRequiredError ->
+        []
 
       :Annotations ->
         []
@@ -232,6 +251,12 @@ defmodule Generator do
         []
 
       :CancelledNotification ->
+        [notification: true]
+
+      :CancelTaskRequest ->
+        [rpc_request: true]
+
+      :CancelTaskResult ->
         []
 
       :ClientCapabilities ->
@@ -246,6 +271,9 @@ defmodule Generator do
       :ClientResult ->
         :nogen
 
+      :CompleteRequestParams ->
+        :nogen
+
       :CompleteResult ->
         :nogen
 
@@ -253,19 +281,37 @@ defmodule Generator do
         []
 
       :CreateMessageRequest ->
-        :nogen
+        [rpc_request: true]
+
+      :CreateMessageRequestParams ->
+        []
 
       :CreateMessageResult ->
-        :nogen
+        []
+
+      :CreateTaskResult ->
+        []
 
       :Cursor ->
         :nogen
 
       :ElicitRequest ->
-        :nogen
+        [rpc_request: true]
+
+      :ElicitRequestFormParams ->
+        []
+
+      :ElicitRequestURLParams ->
+        []
+
+      :ElicitRequestParams ->
+        []
 
       :ElicitResult ->
-        :nogen
+        []
+
+      :ElicitationCompleteNotification ->
+        [notification: true]
 
       :EmbeddedResource ->
         [content_block: true]
@@ -274,9 +320,30 @@ defmodule Generator do
         :nogen
 
       :EnumSchema ->
-        :nogen
+        []
+
+      :Error ->
+        []
 
       :GetPromptResult ->
+        []
+
+      :GetTaskPayloadRequest ->
+        [rpc_request: true]
+
+      :GetTaskPayloadResult ->
+        []
+
+      :GetTaskRequest ->
+        [rpc_request: true]
+
+      :GetTaskResult ->
+        []
+
+      :Icon ->
+        []
+
+      :Icons ->
         []
 
       :ImageContent ->
@@ -286,12 +353,15 @@ defmodule Generator do
         []
 
       :InitializedNotification ->
-        []
+        [notification: true]
 
       :InitializeResult ->
         []
 
       :JSONRPCError ->
+        []
+
+      :JSONRPCErrorResponse ->
         []
 
       :JSONRPCMessage ->
@@ -305,6 +375,12 @@ defmodule Generator do
 
       :JSONRPCResponse ->
         []
+
+      :JSONRPCResultResponse ->
+        []
+
+      :LegacyTitledEnumSchema ->
+        :nogen
 
       :ListPromptsResult ->
         []
@@ -321,6 +397,12 @@ defmodule Generator do
       :ListRootsResult ->
         :nogen
 
+      :ListTasksRequest ->
+        [rpc_request: true]
+
+      :ListTasksResult ->
+        []
+
       :ListToolsResult ->
         []
 
@@ -330,19 +412,31 @@ defmodule Generator do
       :LoggingMessageNotification ->
         :nogen
 
+      :LoggingMessageNotificationParams ->
+        []
+
       :ModelHint ->
         :nogen
 
       :ModelPreferences ->
         :nogen
 
+      :MultiSelectEnumSchema ->
+        :nogen
+
       :Notification ->
         :nogen
 
-      :NumberSchema ->
+      :NotificationParams ->
         :nogen
 
+      :NumberSchema ->
+        []
+
       :PaginatedRequest ->
+        :nogen
+
+      :PaginatedRequestParams ->
         :nogen
 
       :PaginatedResult ->
@@ -352,7 +446,7 @@ defmodule Generator do
         :nogen
 
       :ProgressNotification ->
-        []
+        [notification: true]
 
       :ProgressToken ->
         []
@@ -375,7 +469,13 @@ defmodule Generator do
       :ReadResourceResult ->
         []
 
+      :RelatedTaskMetadata ->
+        []
+
       :Request ->
+        :nogen
+
+      :RequestParams ->
         :nogen
 
       :RequestId ->
@@ -393,6 +493,9 @@ defmodule Generator do
       :ResourceListChangedNotification ->
         :nogen
 
+      :ResourceRequestParams ->
+        :nogen
+
       :ResourceTemplate ->
         []
 
@@ -400,7 +503,10 @@ defmodule Generator do
         :nogen
 
       :ResourceUpdatedNotification ->
-        :nogen
+        [notification: true]
+
+      :ResourceUpdatedNotificationParams ->
+        []
 
       :Result ->
         []
@@ -412,9 +518,15 @@ defmodule Generator do
         :nogen
 
       :RootsListChangedNotification ->
-        []
+        [notification: true]
 
       :SamplingMessage ->
+        :nogen
+
+      :SamplingMessageContentBlock ->
+        :nogen
+
+      :SingleSelectEnumSchema ->
         :nogen
 
       :ServerCapabilities ->
@@ -430,7 +542,31 @@ defmodule Generator do
         :nogen
 
       :StringSchema ->
+        []
+
+      :Task ->
+        []
+
+      :TaskAugmentedRequestParams ->
         :nogen
+
+      :TaskMetadata ->
+        []
+
+      :TaskResolvedNotification ->
+        [notification: true]
+
+      :TaskResolvedNotificationParams ->
+        []
+
+      :TaskStatusNotification ->
+        [notification: true]
+
+      :TaskStatusNotificationParams ->
+        []
+
+      :TaskStatus ->
+        []
 
       :TextContent ->
         [content_block: true]
@@ -438,8 +574,35 @@ defmodule Generator do
       :TextResourceContents ->
         []
 
+      :TitledMultiSelectEnumSchema ->
+        :nogen
+
+      :TitledSingleSelectEnumSchema ->
+        :nogen
+
       :Tool ->
         []
+
+      :ToolChoice ->
+        []
+
+      :ToolChoiceAuto ->
+        []
+
+      :ToolChoiceNone ->
+        []
+
+      :ToolChoiceTool ->
+        []
+
+      :ToolExecution ->
+        []
+
+      :ToolResultContent ->
+        [content_block: true]
+
+      :ToolUseContent ->
+        [content_block: true]
 
       :ToolAnnotations ->
         []
@@ -465,6 +628,10 @@ defmodule Generator do
     true == Keyword.get(module_config(name), :content_block)
   end
 
+  defp notification?(name) do
+    true == Keyword.get(module_config(name), :notification)
+  end
+
   defp filter_schemas(defs) do
     Enum.reject(defs, fn conf(name: name) -> skip_definition?(name) end)
   end
@@ -473,6 +640,7 @@ defmodule Generator do
     conf
     |> enforce_request_params_meta()
     |> skip_request_fields()
+    |> skip_notification_fields()
     |> skip_content_type()
     |> classify_schema()
     |> use_schema_api()
@@ -520,24 +688,10 @@ defmodule Generator do
   end
 
   # extract sub obeject schemas from entities and move them as new definitions.
+  # NOTE: In the 2025-11-25 spec, all *RequestParams schemas are now defined
+  # directly in $defs as references, so no sub-schema swapping is needed.
   defp swap_sub_schemas(confmap) do
     confmap
-    |> swap_sub_schema(:InitializeRequest, [:properties, :params], :InitializeRequestParams)
-    |> swap_sub_schema(:CallToolRequest, [:properties, :params], :CallToolRequestParams)
-    |> swap_sub_schema(:ListResourcesRequest, [:properties, :params], :ListResourcesRequestParams)
-    |> swap_sub_schema(
-      :ListResourceTemplatesRequest,
-      [:properties, :params],
-      :ListResourceTemplatesRequestParams
-    )
-    |> swap_sub_schema(:ReadResourceRequest, [:properties, :params], :ReadResourceRequestParams)
-    |> swap_sub_schema(:ListPromptsRequest, [:properties, :params], :ListPromptsRequestParams)
-    |> swap_sub_schema(:GetPromptRequest, [:properties, :params], :GetPromptRequestParams)
-    |> swap_sub_schema(
-      :CancelledNotification,
-      [:properties, :params],
-      :CancelledNotificationParams
-    )
   end
 
   def prelude do
@@ -681,6 +835,26 @@ defmodule Generator do
     end
   end
 
+  defp skip_notification_fields(conf) do
+    # Similar to skip_request_fields but for notifications.
+    # Notifications have jsonrpc and method fields that should be skipped in the struct.
+    conf(name: name, schema: schema, opts: opts) = conf
+
+    if notification?(name) do
+      %{const: method} = schema.properties.method
+
+      conf(conf,
+        opts:
+          Keyword.merge(opts,
+            skip_keys: [:method, :jsonrpc],
+            serialize_merge: %{method: method, jsonrpc: @jsonrpc_vsn}
+          )
+      )
+    else
+      conf
+    end
+  end
+
   defp skip_content_type(conf) do
     conf(name: name, schema: schema, opts: opts) = conf
 
@@ -749,6 +923,11 @@ defmodule Generator do
           rest when map_size(rest) == 1 -> module_name(name)
         end
 
+      {:val, %{"$ref": "#/$defs/" <> name} = schema} ->
+        case Map.drop(schema, [:description, :"$schema"]) do
+          rest when map_size(rest) == 1 -> module_name(name)
+        end
+
       {:val, %{"$ref": _} = schema} ->
         raise "invalid ref schema: #{inspect(schema)}"
 
@@ -786,11 +965,12 @@ defmodule Generator do
         :ok =
           case constschema do
             %{type: "string"} -> :ok
+            %{type: "integer"} -> :ok
             %{type: other} -> raise "unsupported const type: #{inspect(other)}"
             _ -> :ok
           end
 
-        true = is_binary(value)
+        true = is_binary(value) or is_integer(value)
 
         # If the const is a method we may have defined it as a default
         extra_args =
