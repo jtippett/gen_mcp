@@ -103,6 +103,8 @@ defmodule GenMCP.Suite do
       :trackers
     ]
     defstruct @enforce_keys
+
+    @type t :: %__MODULE__{}
   end
 
   Record.defrecordp(:tracker, id: nil, data: nil, channel: nil, mref: nil)
@@ -687,7 +689,7 @@ defmodule GenMCP.Suite do
   end
 
   defp generate_request_id do
-    :crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)
+    Base.encode16(:crypto.strong_rand_bytes(8), case: :lower)
   end
 
   defp session_listener_channel_change(state, event) do

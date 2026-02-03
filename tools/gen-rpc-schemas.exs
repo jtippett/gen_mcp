@@ -111,6 +111,7 @@ defmodule Generator do
       |> Map.fetch!(:"$defs")
       |> Enum.map(fn {name, schema} -> conf(name: name, schema: schema, opts: []) end)
       |> filter_schemas()
+      |> Enum.map(&apply_module_config/1)
       # index by name so we can target schemas by name and add new confs to the
       # definitions
       |> Map.new(fn conf(name: name) = conf -> {name, conf} end)
@@ -630,6 +631,13 @@ defmodule Generator do
 
   defp notification?(name) do
     true == Keyword.get(module_config(name), :notification)
+  end
+
+  defp apply_module_config(conf(name: name, opts: opts) = conf) do
+    case module_config(name) do
+      :nogen -> conf
+      config when is_list(config) -> conf(conf, opts: Keyword.merge(opts, config))
+    end
   end
 
   defp filter_schemas(defs) do
