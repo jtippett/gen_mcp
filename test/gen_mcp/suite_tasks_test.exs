@@ -16,7 +16,7 @@ defmodule GenMCP.SuiteTasksTest do
     # Default to using task store
     opts =
       @server_info
-      |> Keyword.merge(task_store: {ETSTaskStore, []})
+      |> Keyword.put(:task_store, {ETSTaskStore, []})
       |> Keyword.merge(server_opts)
 
     assert {:ok, state} = Suite.init("some-session-id", opts)
@@ -43,9 +43,7 @@ defmodule GenMCP.SuiteTasksTest do
 
   describe "capabilities" do
     test "advertises tasks capability when task_store is configured" do
-      opts =
-        @server_info
-        |> Keyword.merge(task_store: {ETSTaskStore, []})
+      opts = Keyword.put(@server_info, :task_store, {ETSTaskStore, []})
 
       assert {:ok, state} = Suite.init("session-1", opts)
 

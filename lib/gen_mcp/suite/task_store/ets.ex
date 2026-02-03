@@ -22,7 +22,7 @@ defmodule GenMCP.Suite.TaskStore.ETS do
 
   @behaviour GenMCP.Suite.TaskStore
 
-  @default_ttl :timer.hours(1)
+  @default_ttl to_timeout(hour: 1)
 
   @impl true
   def init(opts) do
@@ -86,7 +86,11 @@ defmodule GenMCP.Suite.TaskStore.ETS do
     tasks =
       :ets.foldl(
         fn {_id, task}, acc ->
-          if task.session_id == session_id, do: [task | acc], else: acc
+          if task.session_id == session_id do
+            [task | acc]
+          else
+            acc
+          end
         end,
         [],
         state.table

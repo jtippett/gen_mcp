@@ -13,13 +13,13 @@ defmodule GenMCP.Suite.TaskStore.ETSTest do
       {:ok, state} = ETS.init([])
 
       assert is_reference(state.table)
-      assert state.ttl == :timer.hours(1)
+      assert state.ttl == to_timeout(hour: 1)
     end
 
     test "accepts custom TTL" do
-      {:ok, state} = ETS.init(ttl: :timer.minutes(30))
+      {:ok, state} = ETS.init(ttl: to_timeout(minute: 30))
 
-      assert state.ttl == :timer.minutes(30)
+      assert state.ttl == to_timeout(minute: 30)
     end
   end
 
@@ -81,7 +81,7 @@ defmodule GenMCP.Suite.TaskStore.ETSTest do
 
       assert updated_task.status == :running
       assert updated_task.result == "partial"
-      assert DateTime.compare(updated_task.updated_at, updated_task.created_at) == :gt
+      assert DateTime.after?(updated_task.updated_at, updated_task.created_at)
     end
 
     test "preserves unmodified fields", %{state: state} do
@@ -135,7 +135,7 @@ defmodule GenMCP.Suite.TaskStore.ETSTest do
       {:ok, tasks, _state} = ETS.list("session-1", state)
 
       assert length(tasks) == 2
-      task_ids = Enum.map(tasks, & &1.id) |> Enum.sort()
+      task_ids = Enum.sort(Enum.map(tasks, & &1.id))
       assert task_ids == ["task-1", "task-2"]
       assert Enum.all?(tasks, fn t -> t in [task1, task2] end)
     end

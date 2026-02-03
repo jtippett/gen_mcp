@@ -251,7 +251,11 @@ defmodule GenMCP do
   - `{:error, :no_task_store}` - No task store is configured for this session
   - `{:error, {:session_not_found, session_id}}` - The session does not exist
   """
-  @spec complete_task(session_id :: String.t(), task_id :: String.t(), outcome :: {:ok, term()} | {:error, term()}) ::
+  @spec complete_task(
+          session_id :: String.t(),
+          task_id :: String.t(),
+          outcome :: {:ok, term()} | {:error, term()}
+        ) ::
           :ok | {:error, term()}
   def complete_task(session_id, task_id, outcome) do
     GenMCP.Mux.call_session(session_id, {:complete_task, task_id, outcome})
