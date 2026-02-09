@@ -82,8 +82,7 @@ defmodule GenMCP.Suite.SessionController.DevSessionStore do
   end
 
   @impl true
-  @spec restore(term, term, term) :: no_return
-  def restore(restore_data, channel, opts) do
+  def restore(_session_id, restore_data, channel, opts) do
     client_info = decode_session(restore_data)
     {:ok, client_info, channel, opts}
   end

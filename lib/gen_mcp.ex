@@ -307,4 +307,20 @@ defmodule GenMCP do
   def elicit(channel, params) do
     GenMCP.Suite.elicit(channel, params)
   end
+
+  @doc """
+  Returns the session ID of the current process, or `nil` if the calling
+  process is not a session.
+
+  This is useful inside `c:GenMCP.Suite.SessionController` callbacks
+  (e.g. `handle_info/3`) or any code running inside the session process where
+  the session ID was not explicitly passed.
+  """
+  @spec current_session_id() :: String.t() | nil
+  def current_session_id do
+    case Registry.keys(GenMCP.Mux.registry(), self()) do
+      [session_id] -> session_id
+      _ -> nil
+    end
+  end
 end

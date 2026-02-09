@@ -18,7 +18,7 @@ defmodule GenMCP.Suite.SessionController do
   A channel is given to be able to compare authenticated channels with session
   ownership, but the channel cannot be altered at this step.
 
-  The resoted data will be passed to `c:restore/3` in the execution context of
+  The restored data will be passed to `c:restore/4` in the execution context of
   the session process.
   """
   @callback fetch(session_id :: String.t(), channel, arg) ::
@@ -49,12 +49,19 @@ defmodule GenMCP.Suite.SessionController do
   Called by `GenMCP.Suite` or custom implementations when a session is restored
   from stored data.
 
-  Receives the return value of `c:fetch/3` as `session_state`.
+  Receives the session ID and the return value of `c:fetch/3` as restore data.
 
   Returns the persisted client information, the updated channel with any
   restored assigns, and the session state.
+
+  > #### Changed in v0.5 {: .warning}
+  >
+  > `restore/3` is deprecated. Implement `restore/4` which receives the
+  > `session_id` as the first argument, matching the signature of `c:create/4`.
+  > Existing `restore/3` implementations will continue to work but will emit a
+  > deprecation warning at runtime.
   """
-  @callback restore(restore_data, channel, arg) ::
+  @callback restore(session_id, restore_data, channel, arg) ::
               {:ok, PersistedClientInfo.normalized(), channel, session_state}
               | {:stop, reason :: term()}
 

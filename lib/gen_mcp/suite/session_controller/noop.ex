@@ -18,8 +18,8 @@ defmodule GenMCP.Suite.SessionController.Noop do
   end
 
   @impl true
-  @spec restore(term, term, term) :: no_return
-  def restore(_restore_data, _channel, _arg) do
+  @spec restore(term, term, term, term) :: no_return
+  def restore(_session_id, _restore_data, _channel, _arg) do
     raise "#{inspect(__MODULE__)} does not support restoring sessions"
   end
 

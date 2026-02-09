@@ -507,7 +507,9 @@ defmodule GenMCP.Suite do
   def session_restore(restore_data, channel, {:__init__, session_id, opts} = state) do
     {sc_mod, sc_state} = normalize_session_controller(opts)
 
-    callback SessionController, sc_mod.restore(restore_data, channel, sc_state) do
+    restore_result = call_restore(sc_mod, session_id, restore_data, channel, sc_state)
+
+    case restore_result do
       {:ok, normalized_client_info, sc_channel, sc_state} when is_map(normalized_client_info) ->
         case JSV.validate(normalized_client_info, @normalized_client_root) do
           {:ok, pci} ->
@@ -522,6 +524,12 @@ defmodule GenMCP.Suite do
 
       {:stop, reason} ->
         {:stop, reason, state}
+
+      other ->
+        raise GenMCP.CallbackReturnError,
+          mfa: {sc_mod, :restore, [session_id, restore_data, channel, sc_state]},
+          behaviour: SessionController,
+          return_value: other
     end
   end
 
@@ -1166,6 +1174,19 @@ defmodule GenMCP.Suite do
       end
 
     tracker(id: track_id, data: data, channel: channel, mref: mref)
+  end
+
+  defp call_restore(sc_mod, session_id, restore_data, channel, sc_state) do
+    if function_exported?(sc_mod, :restore, 4) do
+      sc_mod.restore(session_id, restore_data, channel, sc_state)
+    else
+      IO.warn(
+        "#{inspect(sc_mod)}.restore/3 is deprecated, implement restore/4 " <>
+          "which receives the session_id as the first argument"
+      )
+
+      sc_mod.restore(restore_data, channel, sc_state)
+    end
   end
 
   defp normalize_session_controller(opts) do

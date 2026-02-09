@@ -268,7 +268,9 @@ defmodule GenMCP.SuiteSessionTest do
 
   describe "session restore" do
     test "restore callback is called via Suite.session_restore" do
-      expect(SessionControllerMock, :restore, fn restore_data, channel, arg ->
+      expect(SessionControllerMock, :restore, fn session_id, restore_data, channel, arg ->
+        assert @sid == session_id
+
         # restore data given to session_restore is given
         assert :some_restore_data == restore_data
 
@@ -285,7 +287,7 @@ defmodule GenMCP.SuiteSessionTest do
     end
 
     test "restore callback returns invalid client info" do
-      expect(SessionControllerMock, :restore, fn restore_data, channel, arg ->
+      expect(SessionControllerMock, :restore, fn @sid, restore_data, channel, arg ->
         # restore data given to session_restore is given
         assert :some_restore_data == restore_data
 
@@ -303,7 +305,7 @@ defmodule GenMCP.SuiteSessionTest do
 
   describe "with restore" do
     defp init_with_restore(opts \\ []) do
-      expect(SessionControllerMock, :restore, fn restore_data, channel, arg ->
+      expect(SessionControllerMock, :restore, fn @sid, restore_data, channel, arg ->
         assert :some_restore_data == restore_data
 
         assert %{log: [:arg]} == arg
@@ -479,7 +481,7 @@ defmodule GenMCP.SuiteSessionTest do
     end
 
     test "restore callback returning stop tuple stops the session" do
-      expect(SessionControllerMock, :restore, fn restore_data, _channel, arg ->
+      expect(SessionControllerMock, :restore, fn @sid, restore_data, _channel, arg ->
         assert :some_restore_data == restore_data
 
         assert %{log: [:arg]} == arg
@@ -643,7 +645,7 @@ defmodule GenMCP.SuiteSessionTest do
       |> expect(:fetch, fn ^session_id, _channel, _arg ->
         {:ok, :some_restore_data}
       end)
-      |> expect(:restore, fn :some_restore_data, channel, arg ->
+      |> expect(:restore, fn ^session_id, :some_restore_data, channel, arg ->
         {:ok, normalized_client(), channel, arg}
       end)
       |> expect(:listener_change, fn channel, _session_data ->
@@ -670,7 +672,7 @@ defmodule GenMCP.SuiteSessionTest do
       |> expect(:fetch, fn ^session_id, _channel, _arg ->
         {:ok, :some_restore_data}
       end)
-      |> expect(:restore, fn :some_restore_data, channel, arg ->
+      |> expect(:restore, fn ^session_id, :some_restore_data, channel, arg ->
         {:ok, normalized_client(), channel, arg}
       end)
       |> expect(:listener_change, fn channel, _session_data ->
