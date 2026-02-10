@@ -83,6 +83,21 @@ defmodule GenMCP.Mux do
     :gen_mcp_mux_session_registry
   end
 
+  @doc """
+  Lists active sessions on the local node.
+
+  Returns a list of `%{session_id: binary(), pid: pid()}` for every session
+  registered in the local process registry. Sessions on remote nodes are not
+  included; use `lookup_pid/1` to resolve a specific session across the cluster.
+  """
+  @spec list_sessions() :: [%{session_id: binary(), pid: pid()}]
+  def list_sessions do
+    Enum.map(
+      Registry.select(registry(), [{{:"$1", :"$2", :_}, [], [{{:"$1", :"$2"}}]}]),
+      fn {session_id, pid} -> %{session_id: session_id, pid: pid} end
+    )
+  end
+
   # -- Calling Session --------------------------------------------------------
 
   def request(session, request, channel, timeout \\ 5000)
