@@ -453,10 +453,10 @@ defmodule GenMCP.SuiteTest do
                Suite.handle_request(tool_call_req, build_channel(), state)
     end
 
-    test "rejects initialization request when already initialized" do
+    test "accepts re-initialization request when already initialized" do
       state = init_session()
 
-      # Attempt to initialize again while already initialized
+      # Re-initialize with new capabilities
       init_req = %MCP.InitializeRequest{
         id: "setup-init-2",
         params: %MCP.InitializeRequestParams{
@@ -466,14 +466,11 @@ defmodule GenMCP.SuiteTest do
         }
       }
 
-      # Should return an error with :stop tuple since we're already initialized
-      assert {:stop, stop_reason, err, _} =
+      assert {:reply, {:result, %MCP.InitializeResult{}}, new_state} =
                Suite.handle_request(init_req, build_channel(), state)
 
-      assert {:shutdown, {:init_failure, :already_initialized}} = stop_reason
-      assert {:error, :already_initialized} = err
-
-      assert {400, %{code: -32_602, message: "Session is already initialized"}} = check_error(err)
+      assert %{client_capabilities: %MCP.ClientCapabilities{}, client_initialized: false} =
+               new_state
     end
 
     test "rejects initialization with invalid protocol version" do
@@ -501,6 +498,145 @@ defmodule GenMCP.SuiteTest do
                 data: %{version: "2024-01-01", supported: ["2025-06-18", "2025-11-25"]},
                 message: "Unsupported protocol version"
               }} = check_error(reason)
+    end
+  end
+
+  describe "session re-initialization" do
+    test "updates client capabilities from new request" do
+      state = init_session()
+
+      new_caps = %MCP.ClientCapabilities{elicitation: %{"new" => "caps"}}
+
+      init_req = %MCP.InitializeRequest{
+        id: "reinit-1",
+        params: %MCP.InitializeRequestParams{
+          capabilities: new_caps,
+          clientInfo: %{name: "test", version: "2.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, _}, new_state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %{client_capabilities: ^new_caps} = new_state
+    end
+
+    test "resets client_initialized to false" do
+      state = init_session()
+      assert state.client_initialized == true
+
+      init_req = %MCP.InitializeRequest{
+        id: "reinit-2",
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, _}, new_state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert new_state.client_initialized == false
+    end
+
+    test "echoes the requested protocol version" do
+      state = init_session()
+
+      init_req = %MCP.InitializeRequest{
+        id: "reinit-3",
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-11-25"
+        }
+      }
+
+      assert {:reply, {:result, result}, _} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{protocolVersion: "2025-11-25"} = result
+    end
+
+    test "returns current server capabilities with tools still advertised" do
+      ToolMock
+      |> stub(:info, fn
+        :name, _ -> "MyTool"
+        :title, _ -> nil
+        :description, _ -> nil
+        :annotations, _ -> nil
+        :_meta, _ -> nil
+      end)
+      |> stub(:input_schema, fn _ -> %{type: :object} end)
+      |> stub(:output_schema, fn _ -> nil end)
+
+      state = init_session(tools: [{ToolMock, :my_tool}])
+
+      init_req = %MCP.InitializeRequest{
+        id: "reinit-4",
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, result}, _} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{
+               capabilities: %MCP.ServerCapabilities{tools: %{}}
+             } = result
+    end
+
+    test "rejects unsupported protocol version" do
+      state = init_session()
+
+      init_req = %MCP.InitializeRequest{
+        id: "reinit-5",
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2024-01-01"
+        }
+      }
+
+      assert {:stop, stop_reason, err, _} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert {:error, {:unsupported_protocol, "2024-01-01"}} = err
+      assert {:shutdown, {:init_failure, {:unsupported_protocol, "2024-01-01"}}} = stop_reason
+    end
+
+    test "preserves existing tools and resources" do
+      ToolMock
+      |> stub(:info, fn
+        :name, _ -> "MyTool"
+        :title, _ -> nil
+        :description, _ -> nil
+        :annotations, _ -> nil
+        :_meta, _ -> nil
+      end)
+      |> stub(:input_schema, fn _ -> %{type: :object} end)
+      |> stub(:output_schema, fn _ -> nil end)
+
+      state = init_session(tools: [{ToolMock, :my_tool}])
+      original_tools_map = state.tools_map
+
+      init_req = %MCP.InitializeRequest{
+        id: "reinit-6",
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, _}, new_state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert new_state.tools_map == original_tools_map
     end
   end
 

@@ -157,9 +157,13 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.InitializeRequest{} = _req, _channel, state) do
-    reason = :already_initialized
-    {:stop, {:shutdown, {:init_failure, reason}}, {:error, reason}, state}
+  def handle_request(%MCP.InitializeRequest{} = req, _channel, %State{} = state) do
+    with :ok <- check_protocol_version(req) do
+      reinitialize(req, state)
+    else
+      {:error, reason} ->
+        {:stop, {:shutdown, {:init_failure, reason}}, {:error, reason}, state}
+    end
   end
 
   # Handling requests requires having handled the first initialization request.
@@ -859,6 +863,23 @@ defmodule GenMCP.Suite do
       sc_channel,
       opts
     )
+  end
+
+  defp reinitialize(req, state) do
+    state = %{state |
+      client_capabilities: req.params.capabilities,
+      client_initialized: false
+    }
+
+    init_result =
+      MCP.intialize_result(
+        capabilities: MCP.capabilities(capabilities(state)),
+        instructions: state.instructions,
+        server_info: state.server_info,
+        protocol_version: req.params.protocolVersion
+      )
+
+    {:reply, {:result, init_result}, state}
   end
 
   # Init channel is generally the InitializationRequest channel but in the case

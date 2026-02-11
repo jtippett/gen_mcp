@@ -212,15 +212,35 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
   end
 
   defp dispatch_req(conn, msg_id, %InitializeRequest{} = req, conf) do
-    with :ok <- reject_session_id(conn),
-         {:ok, session_id} <- Mux.start_session(conf.session_opts),
-         channel = make_channel(conn, req, session_id, conf),
-         {:result, %InitializeResult{} = result} <- Mux.request(session_id, req, channel) do
-      conn
-      |> put_resp_session_id(session_id)
-      |> send_result_response(200, msg_id, result)
-    else
-      {:error, reason} -> send_error(conn, reason, msg_id)
+    case {lookup_session_id(conn), supports_session_resumption?(req)} do
+      # Session ID present and protocol supports resumption — attempt resume
+      {{:ok, old_session_id}, true} ->
+        channel = make_channel(conn, req, old_session_id, conf)
+
+        with {:ok, session_pid} <- ensure_started_session(old_session_id, channel, conf),
+             {:result, %InitializeResult{} = result} <- Mux.request(session_pid, req, channel) do
+          conn
+          |> put_resp_session_id(old_session_id)
+          |> send_result_response(200, msg_id, result)
+        else
+          {:error, reason} -> send_error(conn, reason, msg_id)
+        end
+
+      # Session ID present but protocol doesn't support resumption — reject
+      {{:ok, _}, false} ->
+        send_error(conn, :unexpected_session_id, msg_id)
+
+      # No session ID — fresh session
+      {{:error, :missing_session_id}, _} ->
+        with {:ok, session_id} <- Mux.start_session(conf.session_opts),
+             channel = make_channel(conn, req, session_id, conf),
+             {:result, %InitializeResult{} = result} <- Mux.request(session_id, req, channel) do
+          conn
+          |> put_resp_session_id(session_id)
+          |> send_result_response(200, msg_id, result)
+        else
+          {:error, reason} -> send_error(conn, reason, msg_id)
+        end
     end
   end
 
@@ -233,6 +253,12 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
       {:error, reason} -> send_error(conn, reason, msg_id)
     end
   end
+
+  defp supports_session_resumption?(%InitializeRequest{params: %{protocolVersion: v}})
+       when v in ["2025-11-25"],
+       do: true
+
+  defp supports_session_resumption?(_req), do: false
 
   defp do_dispatch_req(conn, session_pid, msg_id, req, channel) do
     case Mux.request(session_pid, req, channel) do
@@ -264,13 +290,6 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
     case List.keyfind(conn.req_headers, @session_id_header, 0) do
       nil -> {:error, :missing_session_id}
       {@session_id_header, session_id} -> {:ok, session_id}
-    end
-  end
-
-  defp reject_session_id(conn) do
-    case List.keyfind(conn.req_headers, @session_id_header, 0) do
-      nil -> :ok
-      {@session_id_header, _} -> {:error, :unexpected_session_id}
     end
   end
 
