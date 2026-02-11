@@ -215,15 +215,9 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
     case {lookup_session_id(conn), supports_session_resumption?(req)} do
       # Session ID present and protocol supports resumption — attempt resume
       {{:ok, old_session_id}, true} ->
-        channel = make_channel(conn, req, old_session_id, conf)
-
-        with {:ok, session_pid} <- ensure_started_session(old_session_id, channel, conf),
-             {:result, %InitializeResult{} = result} <- Mux.request(session_pid, req, channel) do
-          conn
-          |> put_resp_session_id(old_session_id)
-          |> send_result_response(200, msg_id, result)
-        else
-          {:error, reason} -> send_error(conn, reason, msg_id)
+        case try_resume_session(conn, msg_id, req, old_session_id, conf) do
+          {:ok, conn} -> conn
+          :fallback -> start_fresh_session(conn, msg_id, req, conf)
         end
 
       # Session ID present but protocol doesn't support resumption — reject
@@ -232,15 +226,7 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
 
       # No session ID — fresh session
       {{:error, :missing_session_id}, _} ->
-        with {:ok, session_id} <- Mux.start_session(conf.session_opts),
-             channel = make_channel(conn, req, session_id, conf),
-             {:result, %InitializeResult{} = result} <- Mux.request(session_id, req, channel) do
-          conn
-          |> put_resp_session_id(session_id)
-          |> send_result_response(200, msg_id, result)
-        else
-          {:error, reason} -> send_error(conn, reason, msg_id)
-        end
+        start_fresh_session(conn, msg_id, req, conf)
     end
   end
 
@@ -249,6 +235,34 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
          channel = make_channel(conn, req, session_id, conf),
          {:ok, session_pid} <- ensure_started_session(session_id, channel, conf) do
       do_dispatch_req(conn, session_pid, msg_id, req, channel)
+    else
+      {:error, reason} -> send_error(conn, reason, msg_id)
+    end
+  end
+
+  defp try_resume_session(conn, msg_id, req, old_session_id, conf) do
+    channel = make_channel(conn, req, old_session_id, conf)
+
+    with {:ok, session_pid} <- ensure_started_session(old_session_id, channel, conf),
+         {:result, %InitializeResult{} = result} <- Mux.request(session_pid, req, channel) do
+      {:ok,
+       conn
+       |> put_resp_session_id(old_session_id)
+       |> send_result_response(200, msg_id, result)}
+    else
+      {:error, _reason} -> :fallback
+    end
+  catch
+    :exit, _ -> :fallback
+  end
+
+  defp start_fresh_session(conn, msg_id, req, conf) do
+    with {:ok, session_id} <- Mux.start_session(conf.session_opts),
+         channel = make_channel(conn, req, session_id, conf),
+         {:result, %InitializeResult{} = result} <- Mux.request(session_id, req, channel) do
+      conn
+      |> put_resp_session_id(session_id)
+      |> send_result_response(200, msg_id, result)
     else
       {:error, reason} -> send_error(conn, reason, msg_id)
     end

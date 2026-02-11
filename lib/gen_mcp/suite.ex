@@ -158,9 +158,10 @@ defmodule GenMCP.Suite do
   end
 
   def handle_request(%MCP.InitializeRequest{} = req, _channel, %State{} = state) do
-    with :ok <- check_protocol_version(req) do
-      reinitialize(req, state)
-    else
+    case check_protocol_version(req) do
+      :ok ->
+        reinitialize(req, state)
+
       {:error, reason} ->
         {:stop, {:shutdown, {:init_failure, reason}}, {:error, reason}, state}
     end
@@ -866,10 +867,7 @@ defmodule GenMCP.Suite do
   end
 
   defp reinitialize(req, state) do
-    state = %{state |
-      client_capabilities: req.params.capabilities,
-      client_initialized: false
-    }
+    state = %{state | client_capabilities: req.params.capabilities, client_initialized: false}
 
     init_result =
       MCP.intialize_result(

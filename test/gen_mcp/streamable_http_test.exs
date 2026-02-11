@@ -1369,6 +1369,53 @@ defmodule GenMCP.StreamableHTTPTest do
       assert_receive {:DOWN, ^ref, :process, _, {:shutdown, :session_deleted}}
     end
 
+    test "resume after delete falls back to fresh session" do
+      session_id = init_session(url: @mcp_url)
+
+      ref = Process.monitor(GenMCP.Mux.whereis(session_id))
+
+      expect(ServerMock, :session_delete, fn _ -> :ok end)
+
+      client(session_id: session_id, url: @mcp_url)
+      |> Req.delete!()
+      |> expect_status(204)
+
+      assert_receive {:DOWN, ^ref, :process, _, {:shutdown, :session_deleted}}
+
+      # Session is gone. Attempting to resume with 2025-11-25 should fall back
+      # to a fresh session rather than crashing.
+      expect(ServerMock, :session_fetch, fn ^session_id, %Channel{}, _ ->
+        {:error, :not_found}
+      end)
+
+      ServerMock
+      |> expect(:init, fn _, _ -> {:ok, :resumed_state} end)
+      |> expect(:handle_request, fn _req, _channel, state ->
+        init_result =
+          MCP.intialize_result(
+            capabilities: MCP.capabilities(tools: true),
+            server_info: MCP.server_info(name: "Mock Server", version: "foo", title: "stuff")
+          )
+
+        {:reply, {:result, init_result}, state}
+      end)
+
+      resp =
+        client(session_id: session_id, url: @mcp_url)
+        |> post_message(%MCP.InitializeRequest{
+          id: 1,
+          params: %MCP.InitializeRequestParams{
+            capabilities: %MCP.ClientCapabilities{},
+            clientInfo: %MCP.Implementation{name: "test client", version: "0.0.0"},
+            protocolVersion: "2025-11-25"
+          }
+        })
+        |> expect_status(200)
+
+      new_session_id = expect_session_header(resp)
+      assert new_session_id != session_id
+    end
+
     test "delete unknown session is 404" do
       session_id = "#{NodeSync.node_id()}-some-unknown-session"
 
