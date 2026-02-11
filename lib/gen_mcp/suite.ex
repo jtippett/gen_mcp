@@ -294,14 +294,22 @@ defmodule GenMCP.Suite do
 
   def handle_request(%MCP.SubscribeRequest{} = req, _channel, state) do
     uri = req.params.uri
-    subscribed_uris = MapSet.put(state.subscribed_uris, uri)
-    {:reply, {:result, %MCP.Result{}}, %{state | subscribed_uris: subscribed_uris}}
+    state = %{state | subscribed_uris: MapSet.put(state.subscribed_uris, uri)}
+
+    case persist_client_info(state) do
+      {:ok, state} -> {:reply, {:result, %MCP.Result{}}, state}
+      {:stop, _} = stop -> stop
+    end
   end
 
   def handle_request(%MCP.UnsubscribeRequest{} = req, _channel, state) do
     uri = req.params.uri
-    subscribed_uris = MapSet.delete(state.subscribed_uris, uri)
-    {:reply, {:result, %MCP.Result{}}, %{state | subscribed_uris: subscribed_uris}}
+    state = %{state | subscribed_uris: MapSet.delete(state.subscribed_uris, uri)}
+
+    case persist_client_info(state) do
+      {:ok, state} -> {:reply, {:result, %MCP.Result{}}, state}
+      {:stop, _} = stop -> stop
+    end
   end
 
   def handle_request(%MCP.ListPromptsRequest{} = req, channel, state) do
@@ -411,7 +419,12 @@ defmodule GenMCP.Suite do
     %{sc_mod: sc_mod, sc_channel: sc_channel, sc_state: sc_state} = state
 
     normalized_client_info =
-      normalized_client_info(state.client_capabilities, _ready? = true, sc_mod)
+      normalized_client_info(
+        state.client_capabilities,
+        _ready? = true,
+        state.subscribed_uris,
+        sc_mod
+      )
 
     callback SessionController,
              sc_mod.update(state.session_id, normalized_client_info, sc_channel, sc_state) do
@@ -821,7 +834,7 @@ defmodule GenMCP.Suite do
     {sc_mod, sc_state} = normalize_session_controller(opts)
 
     normalized_client_info =
-      normalized_client_info(client_capabilities, client_initialized?, sc_mod)
+      normalized_client_info(client_capabilities, client_initialized?, MapSet.new(), sc_mod)
 
     callback SessionController,
              sc_mod.create(session_id, normalized_client_info, channel, sc_state) do
@@ -859,7 +872,8 @@ defmodule GenMCP.Suite do
         sc_state: sc_state,
         sc_channel: sc_channel,
         client_capabilities: persisted_client_info.client_capabilities,
-        client_initialized: persisted_client_info.client_initialized
+        client_initialized: persisted_client_info.client_initialized,
+        subscribed_uris: MapSet.new(persisted_client_info.subscribed_uris || [])
       },
       sc_channel,
       opts
@@ -893,7 +907,7 @@ defmodule GenMCP.Suite do
         instructions: Keyword.get(opts, :instructions),
         server_info: build_server_info(opts),
         session_id: init_data.session_id,
-        subscribed_uris: MapSet.new(),
+        subscribed_uris: Map.get(init_data, :subscribed_uris, MapSet.new()),
         task_store: task_store,
         task_store_state: task_store_state,
         token_key: random_string(64),
@@ -1226,14 +1240,43 @@ defmodule GenMCP.Suite do
     end
   end
 
-  defp normalized_client_info(_capabilities, _ready?, GenMCP.Suite.SessionController.Noop) do
+  defp persist_client_info(state) do
+    %{sc_mod: sc_mod, sc_channel: sc_channel, sc_state: sc_state} = state
+
+    case normalized_client_info(
+           state.client_capabilities,
+           state.client_initialized,
+           state.subscribed_uris,
+           sc_mod
+         ) do
+      :__skip_normalization__ ->
+        {:ok, state}
+
+      info ->
+        case sc_mod.update(state.session_id, info, sc_channel, sc_state) do
+          {:ok, %Channel{} = sc_channel, sc_state} ->
+            {:ok, %{state | sc_channel: sc_channel, sc_state: sc_state}}
+
+          {:stop, _} = stop ->
+            stop
+        end
+    end
+  end
+
+  defp normalized_client_info(
+         _capabilities,
+         _ready?,
+         _subscribed_uris,
+         GenMCP.Suite.SessionController.Noop
+       ) do
     :__skip_normalization__
   end
 
-  defp normalized_client_info(capabilities, ready?, _) do
+  defp normalized_client_info(capabilities, ready?, subscribed_uris, _) do
     JSV.Normalizer.normalize(%GenMCP.Suite.PersistedClientInfo{
       client_capabilities: capabilities,
-      client_initialized: ready?
+      client_initialized: ready?,
+      subscribed_uris: MapSet.to_list(subscribed_uris)
     })
   end
 end

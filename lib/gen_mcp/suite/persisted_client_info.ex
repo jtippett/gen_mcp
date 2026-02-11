@@ -20,19 +20,21 @@ defmodule GenMCP.Suite.PersistedClientInfo do
 
   defschema client_capabilities: ClientCapabilities,
             client_initialized:
-              boolean(decription: "True when the server received notifications/initialized")
+              boolean(decription: "True when the server received notifications/initialized"),
+            subscribed_uris: %{type: "array", items: %{type: "string"}, default: []}
 
   @type t :: %__MODULE__{
           client_capabilities: ClientCapabilities.t(),
-          client_initialized: boolean()
+          client_initialized: boolean(),
+          subscribed_uris: [String.t()]
         }
 
   @opaque normalized :: %{optional(binary) => term}
 
   defimpl JSV.Normalizer.Normalize do
     def normalize(t) do
-      %{client_capabilities: cc, client_initialized: ci} = t
-      %{"client_capabilities" => cc, "client_initialized" => ci}
+      %{client_capabilities: cc, client_initialized: ci, subscribed_uris: su} = t
+      %{"client_capabilities" => cc, "client_initialized" => ci, "subscribed_uris" => su}
     end
   end
 end

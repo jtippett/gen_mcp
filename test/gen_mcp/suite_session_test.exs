@@ -521,6 +521,74 @@ defmodule GenMCP.SuiteSessionTest do
     end
   end
 
+  describe "subscribe persists subscribed_uris" do
+    test "subscribe calls update with subscribed_uris in normalized payload" do
+      state = init_initialize_create()
+
+      expect(SessionControllerMock, :update, fn @sid, norm_client, channel, session_data ->
+        assert %{"subscribed_uris" => ["file:///readme.txt"]} = norm_client
+        {:ok, channel, session_data}
+      end)
+
+      subscribe_req = %MCP.SubscribeRequest{
+        id: 1,
+        params: %MCP.SubscribeRequestParams{uri: "file:///readme.txt"}
+      }
+
+      assert {:reply, {:result, %MCP.Result{}}, _state} =
+               Suite.handle_request(subscribe_req, build_channel(), state)
+    end
+
+    test "unsubscribe calls update with empty subscribed_uris" do
+      state = init_initialize_create()
+
+      # First subscribe
+      expect(SessionControllerMock, :update, fn @sid, _norm_client, channel, session_data ->
+        {:ok, channel, session_data}
+      end)
+
+      subscribe_req = %MCP.SubscribeRequest{
+        id: 1,
+        params: %MCP.SubscribeRequestParams{uri: "file:///readme.txt"}
+      }
+
+      assert {:reply, {:result, %MCP.Result{}}, state} =
+               Suite.handle_request(subscribe_req, build_channel(), state)
+
+      # Then unsubscribe
+      expect(SessionControllerMock, :update, fn @sid, norm_client, channel, session_data ->
+        assert %{"subscribed_uris" => []} = norm_client
+        {:ok, channel, session_data}
+      end)
+
+      unsubscribe_req = %MCP.UnsubscribeRequest{
+        id: 2,
+        params: %MCP.UnsubscribeRequestParams{uri: "file:///readme.txt"}
+      }
+
+      assert {:reply, {:result, %MCP.Result{}}, _state} =
+               Suite.handle_request(unsubscribe_req, build_channel(), state)
+    end
+
+    test "restored session preserves subscribed_uris" do
+      expect(SessionControllerMock, :restore, fn @sid, _restore_data, channel, arg ->
+        client =
+          Map.put(normalized_client(), "subscribed_uris", ["file:///a.txt", "file:///b.txt"])
+
+        {:ok, client, channel, arg}
+      end)
+
+      state = init_server()
+
+      assert {:noreply, state} =
+               Suite.session_restore(:some_restore_data, build_channel(), state)
+
+      assert MapSet.member?(state.subscribed_uris, "file:///a.txt")
+      assert MapSet.member?(state.subscribed_uris, "file:///b.txt")
+      assert MapSet.size(state.subscribed_uris) == 2
+    end
+  end
+
   describe "session fetching" do
     test "delegates to the session controller when set" do
       expect(SessionControllerMock, :fetch, fn @sid, _channel, arg ->
