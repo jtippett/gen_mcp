@@ -44,6 +44,12 @@ defmodule GenMCP.Suite do
         type: {:or, [nil, {:tuple, [:atom, :keyword_list]}]},
         default: nil,
         doc: "Optional task store module and options for durable task tracking"
+      ],
+      instructions: [
+        type: {:or, [nil, :string]},
+        default: nil,
+        doc:
+          "Optional instructions describing how to use the server, added to the initialize result"
       ]
     )
 
@@ -84,6 +90,7 @@ defmodule GenMCP.Suite do
       :client_capabilities,
       :client_initialized,
       :extensions,
+      :instructions,
       :prompt_prefixes,
       :prompt_repos,
       :resource_prefixes,
@@ -138,7 +145,9 @@ defmodule GenMCP.Suite do
       init_result =
         MCP.intialize_result(
           capabilities: MCP.capabilities(capabilities(state)),
-          server_info: state.server_info
+          instructions: state.instructions,
+          server_info: state.server_info,
+          protocol_version: req.params.protocolVersion
         )
 
       {:reply, {:result, init_result}, state}
@@ -862,6 +871,7 @@ defmodule GenMCP.Suite do
         client_capabilities: init_data.client_capabilities,
         client_initialized: init_data.client_initialized,
         extensions: build_extensions(opts),
+        instructions: Keyword.get(opts, :instructions),
         server_info: build_server_info(opts),
         session_id: init_data.session_id,
         subscribed_uris: MapSet.new(),

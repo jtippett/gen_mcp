@@ -49,6 +49,40 @@ defmodule GenMCP.MCPTest do
              } = result
     end
 
+    test "includes instructions when provided" do
+      server_info = %MCP.Implementation{name: "TestServer", version: "1.0.0"}
+
+      result =
+        MCP.intialize_result(
+          server_info: server_info,
+          instructions: "Use this server to query data."
+        )
+
+      assert %MCP.InitializeResult{
+               instructions: "Use this server to query data.",
+               serverInfo: ^server_info,
+               protocolVersion: "2025-06-18"
+             } = result
+    end
+
+    test "instructions default to nil" do
+      server_info = %MCP.Implementation{name: "TestServer", version: "1.0.0"}
+      result = MCP.intialize_result(server_info: server_info)
+      assert result.instructions == nil
+    end
+
+    test "accepts custom protocol_version" do
+      server_info = %MCP.Implementation{name: "TestServer", version: "1.0.0"}
+
+      result =
+        MCP.intialize_result(
+          server_info: server_info,
+          protocol_version: "2025-11-25"
+        )
+
+      assert %MCP.InitializeResult{protocolVersion: "2025-11-25"} = result
+    end
+
     test "raises when server_info is missing" do
       assert_raise KeyError, fn ->
         MCP.intialize_result([])

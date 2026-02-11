@@ -343,6 +343,64 @@ defmodule GenMCP.SuiteTest do
              } = result
     end
 
+    test "echoes back the client protocol version" do
+      {:ok, state} = Suite.init("some-session-id", @server_info)
+
+      init_req = %MCP.InitializeRequest{
+        id: 1,
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-11-25"
+        }
+      }
+
+      assert {:reply, {:result, result}, _state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{protocolVersion: "2025-11-25"} = result
+    end
+
+    test "includes instructions in initialize result when configured" do
+      {:ok, state} =
+        Suite.init(
+          "some-session-id",
+          Keyword.put(@server_info, :instructions, "Use this server to query data.")
+        )
+
+      init_req = %MCP.InitializeRequest{
+        id: 1,
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, result}, _state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{instructions: "Use this server to query data."} = result
+    end
+
+    test "instructions default to nil in initialize result" do
+      {:ok, state} = Suite.init("some-session-id", @server_info)
+
+      init_req = %MCP.InitializeRequest{
+        id: 1,
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, result}, _state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert result.instructions == nil
+    end
+
     test "stops the session if initialization request somehow is invalid" do
       assert {:stop, _} = Suite.init("some-session-id", [])
     end
