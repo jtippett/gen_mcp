@@ -233,6 +233,38 @@ defmodule GenMCP do
   end
 
   @doc """
+  Pushes a channel event to a connected MCP client.
+
+  Channel events use the `notifications/claude/channel` method from the
+  experimental Claude Code channels protocol. Unlike resource notifications,
+  channel events do not require the client to subscribe — they are pushed
+  unconditionally to any session with an active listener.
+
+  The event arrives in the client as a `<channel source="server-name" ...>` tag
+  where `content` becomes the tag body and each `meta` entry becomes a tag
+  attribute.
+
+  ## Parameters
+
+  - `session_id` - The session identifier
+  - `content` - The event body (string)
+  - `meta` - Optional metadata map. Each key/value becomes an attribute on
+    the `<channel>` tag. Keys must be identifiers (letters, digits, underscores).
+
+  ## Returns
+
+  - `{:ok, :notified}` - The notification was sent successfully
+  - `{:ok, :no_listener}` - The session's channel is closed
+  - `{:error, {:session_not_found, session_id}}` - The session does not exist
+  """
+  @spec notify_channel(session_id :: String.t(), content :: String.t(), meta :: map()) ::
+          {:ok, :notified | :no_listener}
+          | {:error, {:session_not_found, String.t()}}
+  def notify_channel(session_id, content, meta \\ %{}) do
+    GenMCP.Mux.call_session(session_id, {:notify_channel, content, meta})
+  end
+
+  @doc """
   Completes a task with a result or error.
 
   This function is used to mark a task as completed (with a result) or failed

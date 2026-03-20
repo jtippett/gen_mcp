@@ -208,6 +208,11 @@ defmodule GenMCP.Mux.Session do
     {:reply, result, state}
   end
 
+  def handle_call({:notify_channel, content, meta}, _from, state) do
+    result = state.server_mod.notify_channel(content, meta, state.server_state)
+    {:reply, result, state}
+  end
+
   def handle_call({:complete_task, task_id, outcome}, _from, state) do
     case state.server_mod.complete_task(task_id, outcome, state.server_state) do
       {:ok, server_state} ->
