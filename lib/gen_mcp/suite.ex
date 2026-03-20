@@ -50,6 +50,13 @@ defmodule GenMCP.Suite do
         default: nil,
         doc:
           "Optional instructions describing how to use the server, added to the initialize result"
+      ],
+      channel: [
+        type: :boolean,
+        default: false,
+        doc:
+          "Whether to advertise the experimental `claude/channel` capability." <>
+            " When enabled, `GenMCP.notify_channel/3` can push events to the client."
       ]
     )
 
@@ -88,6 +95,7 @@ defmodule GenMCP.Suite do
     @enforce_keys [
       # Client information
 
+      :channel,
       :client_capabilities,
       :client_initialized,
       :extensions,
@@ -612,6 +620,32 @@ defmodule GenMCP.Suite do
   end
 
   @doc """
+  Pushes a channel event to a connected MCP client.
+
+  Channel events are pushed unconditionally (no subscription required).
+
+  Returns:
+  - `{:ok, :notified}` - when the notification was sent
+  - `{:ok, :no_listener}` - when the session controller channel is closed
+  """
+  @spec notify_channel(String.t(), map(), State.t()) ::
+          {:ok, :notified | :no_listener}
+  def notify_channel(content, meta, state) do
+    if state.sc_channel.status == :closed do
+      {:ok, :no_listener}
+    else
+      notification = %{
+        jsonrpc: "2.0",
+        method: "notifications/claude/channel",
+        params: %{content: content, meta: meta}
+      }
+
+      send(state.sc_channel.client, {:"$gen_mcp", :notification, notification})
+      {:ok, :notified}
+    end
+  end
+
+  @doc """
   Completes a task with a result or error.
 
   Returns:
@@ -913,6 +947,7 @@ defmodule GenMCP.Suite do
 
     state =
       %State{
+        channel: Keyword.get(opts, :channel, false),
         client_capabilities: init_data.client_capabilities,
         client_initialized: init_data.client_initialized,
         extensions: build_extensions(opts),
@@ -1007,7 +1042,7 @@ defmodule GenMCP.Suite do
     has_resources = map_size(state.resource_repos) > 0
     has_tasks = state.task_store != nil
 
-    [
+    base = [
       tools: map_size(state.tools_map) > 0,
       prompts: map_size(state.prompt_repos) > 0,
       resources:
@@ -1019,6 +1054,12 @@ defmodule GenMCP.Suite do
       tasks: has_tasks,
       logging: true
     ]
+
+    if state.channel do
+      Keyword.put(base, :experimental, %{"claude/channel" => %{}})
+    else
+      base
+    end
   end
 
   defp refresh_extensions(state, channel, :all) do
