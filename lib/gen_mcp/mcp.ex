@@ -41,8 +41,8 @@ defmodule GenMCP.MCP do
   Builds a `%#{inspect(MCP.InitializeResult)}{}` for the initialize handshake.
 
   Requires `:server_info` (usually a `%#{inspect(MCP.Implementation)}{}`) and
-  uses `:capabilities` if provided. The `protocolVersion` field defaults to
-  `"2025-06-18"` but can be overridden with `:protocol_version`.
+  uses `:capabilities` if provided. The `protocolVersion` field is fixed to
+  `"2025-11-25"` to match the latest MCP spec supported here.
 
   ## Example
 
@@ -59,7 +59,7 @@ defmodule GenMCP.MCP do
       capabilities: Keyword.get(opts, :capabilities, %{}),
       instructions: Keyword.get(opts, :instructions),
       serverInfo: Keyword.fetch!(opts, :server_info),
-      protocolVersion: Keyword.get(opts, :protocol_version, "2025-06-18")
+      protocolVersion: "2025-11-25"
     }
   end
 
@@ -93,7 +93,7 @@ defmodule GenMCP.MCP do
     %MCP.Implementation{
       name: require_key!(opts, :name, "option :name is required by #{cur_fun()}"),
       version: require_key!(opts, :version, "option :version is required by #{cur_fun()}"),
-      title: Keyword.get(opts, :title, nil)
+      title: Keyword.get(opts, :title)
     }
   end
 

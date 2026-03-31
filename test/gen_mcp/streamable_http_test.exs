@@ -7,7 +7,6 @@ defmodule GenMCP.StreamableHTTPTest do
   import GenMCP.Test.Helpers
   import Mox
 
-  alias GenMCP.Cluster.NodeSync
   alias GenMCP.MCP
   alias GenMCP.MCP.ListenerRequest
   alias GenMCP.Mux.Channel
@@ -20,7 +19,7 @@ defmodule GenMCP.StreamableHTTPTest do
 
   def client(opts) when is_list(opts) do
     headers =
-      case Keyword.get(opts, :session_id, nil) do
+      case Keyword.get(opts, :session_id) do
         nil -> %{}
         sid when is_binary(sid) -> %{"mcp-session-id" => sid}
       end
@@ -103,7 +102,7 @@ defmodule GenMCP.StreamableHTTPTest do
         })
 
       assert %{
-               status: 400,
+               status: 200,
                body: %{
                  "error" => %{
                    "code" => -32_601,
@@ -439,7 +438,7 @@ defmodule GenMCP.StreamableHTTPTest do
                  method: "tools/call",
                  params: %{name: "SomeUnknownTool", arguments: %{}}
                })
-               |> expect_status(400)
+               |> expect_status(200)
                |> body()
     end
 
@@ -509,12 +508,12 @@ defmodule GenMCP.StreamableHTTPTest do
         {:reply, :stream, channel_as_state}
       end)
       |> expect(:handle_info, fn :some_info1, channel_as_state ->
-        {:ok, channel_as_state} = Channel.send_progress(channel_as_state, 0, 3, "zero")
+        :ok = Channel.send_progress(channel_as_state, 0, 3, "zero")
         send(self(), :some_info2)
         {:noreply, channel_as_state}
       end)
       |> expect(:handle_info, fn :some_info2, channel_as_state ->
-        {:ok, channel_as_state} = Channel.send_progress(channel_as_state, 3, 3, "three")
+        :ok = Channel.send_progress(channel_as_state, 3, 3, "three")
         send(self(), :some_info3)
         {:noreply, channel_as_state}
       end)
@@ -648,12 +647,12 @@ defmodule GenMCP.StreamableHTTPTest do
         {:reply, :stream, channel}
       end)
       |> expect(:handle_info, fn :progress_step_1, channel ->
-        {:ok, channel} = Channel.send_progress(channel, 1, 3, "step 1")
+        :ok = Channel.send_progress(channel, 1, 3, "step 1")
         send(self(), :progress_step_2)
         {:noreply, channel}
       end)
       |> expect(:handle_info, fn :progress_step_2, channel ->
-        {:ok, channel} = Channel.send_progress(channel, 2, 3, "step 2")
+        :ok = Channel.send_progress(channel, 2, 3, "step 2")
         send(self(), :error_step)
         {:noreply, channel}
       end)
@@ -968,7 +967,7 @@ defmodule GenMCP.StreamableHTTPTest do
           method: "resources/read",
           params: %{uri: "file:///missing.txt"}
         })
-        |> expect_status(400)
+        |> expect_status(200)
 
       assert %{
                "error" => %{
@@ -1332,8 +1331,11 @@ defmodule GenMCP.StreamableHTTPTest do
 
   describe "session location and termination without controller" do
     test "request to unknown session id returns 404 with -32603 error" do
-      # Using an unknown node to skip the session fetch
       unknown_session_id = "unknown-session-id-12345"
+
+      expect(ServerMock, :session_fetch, fn ^unknown_session_id, %Channel{}, _ ->
+        {:error, :not_found}
+      end)
 
       resp =
         client(session_id: unknown_session_id, url: @mcp_url)
@@ -1417,7 +1419,7 @@ defmodule GenMCP.StreamableHTTPTest do
     end
 
     test "delete unknown session is 404" do
-      session_id = "#{NodeSync.node_id()}-some-unknown-session"
+      session_id = "nonexistent-session-id"
 
       expect(ServerMock, :session_fetch, fn ^session_id, %Channel{}, _ ->
         {:error, :not_found}
@@ -1447,6 +1449,10 @@ defmodule GenMCP.StreamableHTTPTest do
 
     test "calling GET with unknown session id" do
       unknown_session_id = "unknown-some-unknown-session"
+
+      expect(ServerMock, :session_fetch, fn ^unknown_session_id, %Channel{}, _ ->
+        {:error, :not_found}
+      end)
 
       assert %{
                "error" => %{
@@ -1479,6 +1485,66 @@ defmodule GenMCP.StreamableHTTPTest do
                client(url: @mcp_url, session_id: session_id)
                |> get_stream(fn "event: message\ndata: hello\n\n" -> :received_event end)
                |> Enum.to_list()
+    end
+  end
+
+  describe "logging" do
+    test "set level request is accepted and log notifications are delivered as SSE events" do
+      session_id = init_session(url: @mcp_url)
+
+      # Handle set level request
+      ServerMock
+      |> expect(:handle_request, fn req, channel, _state ->
+        assert %MCP.SetLevelRequest{params: %{level: :warning}} = req
+
+        # Simulate streaming with a log notification
+        channel_as_state = channel
+        send(self(), :send_log)
+
+        {:reply, :stream, channel_as_state}
+      end)
+      |> expect(:handle_info, fn :send_log, channel ->
+        :ok = Channel.send_log(%{channel | log_level: :warning}, :error, "something broke", "db")
+
+        {:ok, channel} =
+          Channel.send_result(channel, %MCP.Result{})
+
+        {:noreply, channel}
+      end)
+
+      resp =
+        post_message(
+          client(session_id: session_id, url: @mcp_url),
+          %{
+            jsonrpc: "2.0",
+            id: 789,
+            method: "logging/setLevel",
+            params: %{level: "warning"}
+          },
+          into: :self
+        )
+
+      chunks =
+        resp
+        |> stream_chunks()
+        |> parse_stream()
+        |> Enum.map(fn %{event: "message", data: data} -> data end)
+
+      assert [
+               %{
+                 "method" => "notifications/message",
+                 "params" => %{
+                   "level" => "error",
+                   "data" => "something broke",
+                   "logger" => "db"
+                 }
+               },
+               %{
+                 "id" => 789,
+                 "jsonrpc" => "2.0",
+                 "result" => %{}
+               }
+             ] = chunks
     end
   end
 end

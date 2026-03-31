@@ -23,7 +23,7 @@ defmodule GenMCP.Mux.Session do
                       session_id: [
                         required: true,
                         type: :string,
-                        doc: "The session identifier, prefixed with the node ID and a dash"
+                        doc: "The session identifier"
                       ],
                       server: [
                         type: {:or, [:atom, :mod_arg]},
@@ -106,6 +106,7 @@ defmodule GenMCP.Mux.Session do
   defp init_self({self_opts, server_opts}) do
     session_timeout = Keyword.fetch!(self_opts, :session_timeout)
     session_id = Keyword.fetch!(self_opts, :session_id)
+    Process.put(:gen_mcp_session_id, session_id)
     server = Keyword.fetch!(self_opts, :server)
     {server_mod, server_arg} = normalize_server(server, server_opts)
 

@@ -2,7 +2,7 @@ defmodule GenMCP.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/lud/gen_mcp"
-  @version "0.5.2"
+  @version "0.8.0"
   def project do
     [
       app: :gen_mcp,
@@ -45,11 +45,12 @@ defmodule GenMCP.MixProject do
     [
       # App
       {:phoenix, ">= 1.7.0"},
-      {:jsv, "~> 0.16.0"},
+      {:jsv, "~> 0.16"},
       {:abnf_parsec, "~> 2.0"},
       {:texture, ">= 0.3.2"},
       {:nimble_options, "~> 1.1"},
       {:telemetry, ">= 0.0.0"},
+      {:syn, "~> 3.3"},
 
       # Resources
       mcp_schemas(),
@@ -73,11 +74,13 @@ defmodule GenMCP.MixProject do
     ]
   end
 
+  @schemas_vsn "2025-11-25"
+
   defp mcp_schemas do
     {:modelcontextprotocol,
      git: "https://github.com/modelcontextprotocol/modelcontextprotocol.git",
-     sparse: "schema/2025-11-25",
-     ref: "2025-11-25",
+     sparse: "schema/#{@schemas_vsn}",
+     ref: @schemas_vsn,
      only: [:dev, :test],
      compile: false,
      runtime: false,
@@ -158,7 +161,7 @@ defmodule GenMCP.MixProject do
           ~r/GenMCP\.Mux\..*/
         ],
         Utilities: [
-          GenMCP.RpcError,
+          GenMCP.Error,
           GenMCP.TelemetryLogger
         ],
         Protocol: [

@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-03-30
+
+### 🚀 Features
+
+- Added support for logging capabilities
+
+### 🚜 Refactor
+
+- [**breaking**] Channel.send_progress/3 will not return :ok instead of {:ok, channel}
+
+## [0.7.0] - 2026-03-16
+
+### 🚀 Features
+
+- Use a global registry to support restoring sessions on any node
+- [**breaking**] Default protocol version is now 2025-11-25
+
+## [0.6.0] - 2026-03-16
+
+### 🐛 Bug Fixes
+
+- Return HTTP 200 codes for RPC-level errors
+
 ## [0.5.2] - 2026-01-26
 
 ### 🐛 Bug Fixes

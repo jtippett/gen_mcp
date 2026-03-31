@@ -1,4 +1,4 @@
-# quokka:skip-module-reordering
+# quokka:skip-module-directive-reordering
 
 defmodule GenMCP.Transport.StreamableHTTP do
   plug_opts_schema =
@@ -65,13 +65,13 @@ defmodule GenMCP.Transport.StreamableHTTP do
 
   import Plug.Conn
 
+  alias GenMCP.Error
   alias GenMCP.MCP.InitializeRequest
   alias GenMCP.MCP.InitializeResult
   alias GenMCP.MCP.JSONRPCErrorResponse
   alias GenMCP.MCP.JSONRPCResultResponse
   alias GenMCP.Mux
   alias GenMCP.Mux.Channel
-  alias GenMCP.RpcError
   alias GenMCP.Transport.StreamableHTTP.Impl
   alias GenMCP.Utils.OptsValidator
   alias GenMCP.Validator
@@ -140,13 +140,13 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
 
   import Plug.Conn
 
+  alias GenMCP.Error
   alias GenMCP.MCP.InitializeRequest
   alias GenMCP.MCP.InitializeResult
   alias GenMCP.MCP.JSONRPCErrorResponse
   alias GenMCP.MCP.JSONRPCResultResponse
   alias GenMCP.Mux
   alias GenMCP.Mux.Channel
-  alias GenMCP.RpcError
   alias GenMCP.Utils.OptsValidator
   alias GenMCP.Validator
   alias JSV.Codec
@@ -362,7 +362,7 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
   end
 
   defp send_error(conn, reason, msg_id) do
-    case RpcError.cast_error(reason) do
+    case Error.cast_error(reason) do
       {status, payload} ->
         payload = %JSONRPCErrorResponse{
           error: payload,
@@ -497,7 +497,7 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
 
   defp send_error_response_chunk(conn, reason) do
     msg_id = conn.private.gen_mcp_client_request_id
-    {_status, error_payload} = RpcError.cast_error(reason)
+    {_status, error_payload} = Error.cast_error(reason)
 
     payload = %JSONRPCErrorResponse{
       error: error_payload,

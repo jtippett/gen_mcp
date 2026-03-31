@@ -71,7 +71,7 @@ defmodule GenMCP do
   Returns the supported protocol versions.
   """
   def supported_protocol_versions do
-    ["2025-06-18", "2025-11-25"]
+    ["2025-11-25", "2025-06-18"]
   end
 
   @type state :: term
@@ -318,9 +318,15 @@ defmodule GenMCP do
   """
   @spec current_session_id() :: String.t() | nil
   def current_session_id do
-    case Registry.keys(GenMCP.Mux.registry(), self()) do
-      [session_id] -> session_id
-      _ -> nil
-    end
+    Process.get(:gen_mcp_session_id)
+  end
+
+  @default_channel_log_level :notice
+  @doc """
+  Returns the default logging level used by the MCP logging features on session
+  initialization.
+  """
+  def default_channel_log_level do
+    @default_channel_log_level
   end
 end

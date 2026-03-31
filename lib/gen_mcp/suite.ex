@@ -1,4 +1,4 @@
-# quokka:skip-module-reordering
+# quokka:skip-module-directive-reordering
 defmodule GenMCP.Suite do
   provider_list = fn doc ->
     [
@@ -72,6 +72,7 @@ defmodule GenMCP.Suite do
   alias GenMCP.Suite.PromptRepo
   alias GenMCP.Suite.ResourceRepo
   alias GenMCP.Suite.SessionController
+  alias GenMCP.Suite.SessionController.Noop
   alias GenMCP.Suite.Tool
   alias GenMCP.Utils.OptsValidator
 
@@ -107,7 +108,8 @@ defmodule GenMCP.Suite do
       :token_key,
       :tool_names,
       :tools_map,
-      :trackers
+      :trackers,
+      :log_level
     ]
     defstruct @enforce_keys
 
@@ -157,16 +159,6 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.InitializeRequest{} = req, _channel, %State{} = state) do
-    case check_protocol_version(req) do
-      :ok ->
-        reinitialize(req, state)
-
-      {:error, reason} ->
-        {:stop, {:shutdown, {:init_failure, reason}}, {:error, reason}, state}
-    end
-  end
-
   # Handling requests requires having handled the first initialization request.
   # Once this is done, we accept other requests even before receiving the client
   # initialized notification.
@@ -186,12 +178,22 @@ defmodule GenMCP.Suite do
     {:error, :not_initialized, state}
   end
 
-  def handle_request(%MCP.PingRequest{}, _channel, state) do
-    {:reply, {:result, %MCP.Result{}}, state}
+  def handle_request(req, channel, %State{} = state) do
+    do_handle_request(req, set_channel_log_level(channel, state), state)
+  end
+
+  defp do_handle_request(%MCP.InitializeRequest{} = req, _channel, state) do
+    case check_protocol_version(req) do
+      :ok ->
+        reinitialize(req, state)
+
+      {:error, reason} ->
+        {:stop, {:shutdown, {:init_failure, reason}}, {:error, reason}, state}
+    end
   end
 
   # TODO handle cursor?
-  def handle_request(%MCP.ListToolsRequest{}, _, state) do
+  defp do_handle_request(%MCP.ListToolsRequest{}, _, state) do
     %{tool_names: tool_names, tools_map: tools_map} = state
 
     tools =
@@ -202,7 +204,7 @@ defmodule GenMCP.Suite do
     {:reply, {:result, MCP.list_tools_result(tools)}, state}
   end
 
-  def handle_request(%MCP.CallToolRequest{} = req, channel, state) do
+  defp do_handle_request(%MCP.CallToolRequest{} = req, channel, state) do
     tool_name = req.params.name
 
     case state.tools_map do
@@ -229,7 +231,7 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.ListResourcesRequest{} = req, channel, state) do
+  defp do_handle_request(%MCP.ListResourcesRequest{} = req, channel, state) do
     cursor =
       case req do
         %{params: %{cursor: global_cursor}} when is_binary(global_cursor) -> global_cursor
@@ -253,7 +255,7 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.ReadResourceRequest{} = req, channel, state) do
+  defp do_handle_request(%MCP.ReadResourceRequest{} = req, channel, state) do
     uri = req.params.uri
 
     case find_resource_repo_for_uri(state, uri) do
@@ -268,7 +270,7 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.ListResourceTemplatesRequest{}, _channel, state) do
+  defp do_handle_request(%MCP.ListResourceTemplatesRequest{}, _channel, state) do
     templates =
       Enum.flat_map(state.resource_prefixes, fn prefix ->
         case Map.fetch!(state.resource_repos, prefix).template do
@@ -292,7 +294,7 @@ defmodule GenMCP.Suite do
     {:reply, {:result, result}, state}
   end
 
-  def handle_request(%MCP.SubscribeRequest{} = req, _channel, state) do
+  defp do_handle_request(%MCP.SubscribeRequest{} = req, _channel, state) do
     uri = req.params.uri
     state = %{state | subscribed_uris: MapSet.put(state.subscribed_uris, uri)}
 
@@ -302,7 +304,7 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.UnsubscribeRequest{} = req, _channel, state) do
+  defp do_handle_request(%MCP.UnsubscribeRequest{} = req, _channel, state) do
     uri = req.params.uri
     state = %{state | subscribed_uris: MapSet.delete(state.subscribed_uris, uri)}
 
@@ -312,7 +314,7 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.ListPromptsRequest{} = req, channel, state) do
+  defp do_handle_request(%MCP.ListPromptsRequest{} = req, channel, state) do
     cursor =
       case req do
         %{params: %{cursor: global_cursor}} when is_binary(global_cursor) -> global_cursor
@@ -336,7 +338,7 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.GetPromptRequest{} = req, channel, state) do
+  defp do_handle_request(%MCP.GetPromptRequest{} = req, channel, state) do
     {name, arguments} =
       case req do
         %{params: %{name: name, arguments: arguments}} when is_map(arguments) -> {name, arguments}
@@ -357,8 +359,8 @@ defmodule GenMCP.Suite do
 
   # Task handlers - only active when task_store is configured
 
-  def handle_request(%MCP.ListTasksRequest{}, channel, %{task_store: ts} = state)
-      when ts != nil do
+  defp do_handle_request(%MCP.ListTasksRequest{}, channel, %{task_store: ts} = state)
+       when ts != nil do
     {:ok, tasks, task_store_state} =
       state.task_store.list(
         channel.assigns[:session_id] || state.session_id,
@@ -370,8 +372,8 @@ defmodule GenMCP.Suite do
     {:reply, {:result, result}, %{state | task_store_state: task_store_state}}
   end
 
-  def handle_request(%MCP.GetTaskRequest{} = req, _channel, %{task_store: ts} = state)
-      when ts != nil do
+  defp do_handle_request(%MCP.GetTaskRequest{} = req, _channel, %{task_store: ts} = state)
+       when ts != nil do
     task_id = req.params.taskId
 
     case state.task_store.get(task_id, state.task_store_state) do
@@ -384,8 +386,8 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.CancelTaskRequest{} = req, _channel, %{task_store: ts} = state)
-      when ts != nil do
+  defp do_handle_request(%MCP.CancelTaskRequest{} = req, _channel, %{task_store: ts} = state)
+       when ts != nil do
     task_id = req.params.taskId
 
     case state.task_store.update(task_id, %{status: :cancelled}, state.task_store_state) do
@@ -398,14 +400,20 @@ defmodule GenMCP.Suite do
     end
   end
 
-  def handle_request(%MCP.ListenerRequest{}, sc_channel, state) do
+  defp do_handle_request(%MCP.SetLevelRequest{} = req, _channel, state) do
+    log_level = req.params.level
+    state = set_log_level(state, log_level)
+    {:reply, {:result, %MCP.Result{}}, state}
+  end
+
+  defp do_handle_request(%MCP.ListenerRequest{}, sc_channel, state) do
     case session_listener_channel_change(state, {:open, sc_channel}) do
       {:ok, state} -> {:reply, :stream, state}
       {:stop, reason, state} -> {:stop, reason, state}
     end
   end
 
-  def handle_request(req, _, state) do
+  defp do_handle_request(req, _, state) do
     :telemetry.execute([:gen_mcp, :suite, :error, :unknown_request], %{}, %{
       session_id: state.session_id,
       request: req
@@ -912,6 +920,7 @@ defmodule GenMCP.Suite do
         task_store_state: task_store_state,
         token_key: random_string(64),
         trackers: empty_trackers(),
+        log_level: GenMCP.default_channel_log_level(),
 
         # TODO(doc): Session controller channel manages assigns given to
         # TODO(doc): This must be documented if calling third party tools
@@ -973,6 +982,23 @@ defmodule GenMCP.Suite do
     _extensions = Enum.map(extensions, &Extension.expand/1)
   end
 
+  defp set_channel_log_level(%Channel{} = channel, %State{} = state) do
+    %{channel | log_level: state.log_level}
+  end
+
+  defp set_log_level(state, log_level) do
+    state = %{state | log_level: log_level}
+
+    trackers =
+      Enum.map(state.trackers, fn t ->
+        channel = tracker(t, :channel)
+        tracker(t, channel: %{channel | log_level: log_level})
+      end)
+
+    sc_channel = %{state.sc_channel | log_level: log_level}
+    %{state | trackers: trackers, sc_channel: sc_channel}
+  end
+
   defp capabilities(state) do
     has_resources = map_size(state.resource_repos) > 0
     has_tasks = state.task_store != nil
@@ -986,7 +1012,8 @@ defmodule GenMCP.Suite do
         else
           false
         end,
-      tasks: has_tasks
+      tasks: has_tasks,
+      logging: true
     ]
   end
 
@@ -1036,14 +1063,14 @@ defmodule GenMCP.Suite do
   defp build_server_info(init_opts) do
     name = Keyword.fetch!(init_opts, :server_name)
     version = Keyword.fetch!(init_opts, :server_version)
-    title = Keyword.get(init_opts, :server_title, nil)
+    title = Keyword.get(init_opts, :server_title)
     MCP.server_info(name: name, version: version, title: title)
   end
 
   defp check_protocol_version(%MCP.InitializeRequest{} = req) do
     case req do
       %{params: %{protocolVersion: version}} when version in @supported_protocol_versions -> :ok
-      %{params: %{protocolVersion: version}} -> {:error, {:unsupported_protocol, version}}
+      %{params: %{protocolVersion: version}} -> {:error, {:unsupported_protocol_init, version}}
     end
   end
 
@@ -1235,7 +1262,7 @@ defmodule GenMCP.Suite do
   defp normalize_session_controller(opts) do
     case Keyword.fetch!(opts, :session_controller) do
       {_, _} = t -> t
-      nil -> {GenMCP.Suite.SessionController.Noop, []}
+      nil -> {Noop, []}
       mod -> {mod, []}
     end
   end
@@ -1267,13 +1294,13 @@ defmodule GenMCP.Suite do
          _capabilities,
          _ready?,
          _subscribed_uris,
-         GenMCP.Suite.SessionController.Noop
+         Noop
        ) do
     :__skip_normalization__
   end
 
   defp normalized_client_info(capabilities, ready?, subscribed_uris, _) do
-    JSV.Normalizer.normalize(%GenMCP.Suite.PersistedClientInfo{
+    JSV.Normalizer.normalize(%PersistedClientInfo{
       client_capabilities: capabilities,
       client_initialized: ready?,
       subscribed_uris: MapSet.to_list(subscribed_uris)
