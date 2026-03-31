@@ -122,10 +122,10 @@ defmodule GenMCP.MCP.ModMap do
         "ToolExecution" => GenMCP.MCP.ToolExecution,
         "UnsubscribeRequest" => GenMCP.MCP.UnsubscribeRequest,
         "UnsubscribeRequestParams" => GenMCP.MCP.UnsubscribeRequestParams,
-        # Feature entities: only include those needed for validator resolution
+        # Feature entities: only include those needed for validator resolution.
+        # CreateMessageRequest/Params excluded — its dependency chain reaches
+        # ImageContent which uses format: "byte", unsupported by JSV.
         "CancelTaskRequest" => GenMCP.MCP.CancelTaskRequest,
-        "CreateMessageRequest" => GenMCP.MCP.CreateMessageRequest,
-        "CreateMessageRequestParams" => GenMCP.MCP.CreateMessageRequestParams,
         "ElicitRequest" => GenMCP.MCP.ElicitRequest,
         "ElicitRequestParams" => GenMCP.MCP.ElicitRequestParams,
         "ElicitRequestFormParams" => GenMCP.MCP.ElicitRequestFormParams,
@@ -133,8 +133,6 @@ defmodule GenMCP.MCP.ModMap do
         "ElicitationCompleteNotification" => GenMCP.MCP.ElicitationCompleteNotification,
         "GetTaskRequest" => GenMCP.MCP.GetTaskRequest,
         "ListTasksRequest" => GenMCP.MCP.ListTasksRequest,
-        "ModelHint" => GenMCP.MCP.ModelHint,
-        "ModelPreferences" => GenMCP.MCP.ModelPreferences,
         "Task" => GenMCP.MCP.Task,
         "TaskStatus" => GenMCP.MCP.TaskStatus
       }

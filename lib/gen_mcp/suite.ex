@@ -182,6 +182,10 @@ defmodule GenMCP.Suite do
     do_handle_request(req, set_channel_log_level(channel, state), state)
   end
 
+  defp do_handle_request(%MCP.PingRequest{}, _channel, state) do
+    {:reply, {:result, %MCP.Result{}}, state}
+  end
+
   defp do_handle_request(%MCP.InitializeRequest{} = req, _channel, state) do
     case check_protocol_version(req) do
       :ok ->

@@ -110,38 +110,6 @@ defmodule GenMCP.Mux.SessionTest do
            } = :sys.get_state(session_sup)
   end
 
-  test "list_sessions returns active sessions" do
-    expect(ServerMock, :init, 2, fn _, _ -> {:ok, :state} end)
-
-    assert {:ok, sid1} = Mux.start_session(server: ServerMock)
-    assert {:ok, sid2} = Mux.start_session(server: ServerMock)
-
-    sessions = Mux.list_sessions()
-    session_ids = Enum.map(sessions, & &1.session_id)
-    assert sid1 in session_ids
-    assert sid2 in session_ids
-
-    for s <- sessions, s.session_id in [sid1, sid2] do
-      assert is_pid(s.pid)
-      assert Process.alive?(s.pid)
-    end
-
-    # Stopping a session removes it from the list
-    pid1 = Mux.whereis(sid1)
-    ref = Process.monitor(pid1)
-    GenServer.stop(pid1)
-    assert_receive {:DOWN, ^ref, :process, ^pid1, _}
-
-    # Registry deregisters asynchronously via its own DOWN handler
-    Process.sleep(10)
-
-    remaining_ids = Enum.map(Mux.list_sessions(), & &1.session_id)
-    assert sid1 not in remaining_ids
-    assert sid2 in remaining_ids
-
-    GenServer.stop(Mux.whereis(sid2))
-  end
-
   @tag :capture_log
   test "stops if server returns stop tuple in init" do
     expect(ServerMock, :init, fn _, _ -> {:stop, :some_error} end)

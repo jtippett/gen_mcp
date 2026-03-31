@@ -605,8 +605,8 @@ defmodule GenMCP.SuiteTest do
       assert {:stop, stop_reason, err, _} =
                Suite.handle_request(init_req, build_channel(), state)
 
-      assert {:error, {:unsupported_protocol, "2024-01-01"}} = err
-      assert {:shutdown, {:init_failure, {:unsupported_protocol, "2024-01-01"}}} = stop_reason
+      assert {:error, {:unsupported_protocol_init, "2024-01-01"}} = err
+      assert {:shutdown, {:init_failure, {:unsupported_protocol_init, "2024-01-01"}}} = stop_reason
     end
 
     test "preserves existing tools and resources" do

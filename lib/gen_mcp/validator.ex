@@ -23,7 +23,7 @@ defmodule GenMCP.Validator do
       GenMCP.MCP.ListTasksRequest,
       GenMCP.MCP.GetTaskRequest,
       GenMCP.MCP.CancelTaskRequest,
-      GenMCP.MCP.CreateMessageRequest,
+      # GenMCP.MCP.CreateMessageRequest, # excluded: dep chain hits ImageContent format:"byte" unsupported by JSV
       GenMCP.MCP.ElicitRequest,
       GenMCP.MCP.SetLevelRequest
       # GenMCP.MCP.CompleteRequest

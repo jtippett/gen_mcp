@@ -61,7 +61,7 @@ defmodule GenMCP.MCPTest do
       assert %MCP.InitializeResult{
                instructions: "Use this server to query data.",
                serverInfo: ^server_info,
-               protocolVersion: "2025-06-18"
+               protocolVersion: "2025-11-25"
              } = result
     end
 
