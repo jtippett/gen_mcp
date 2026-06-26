@@ -176,7 +176,19 @@ defmodule GenMCP do
   """
   @callback session_timeout(state) :: term
 
-  @optional_callbacks session_restore: 3, session_delete: 1, session_timeout: 1
+  @doc """
+  Pushes an experimental `claude/channel` event to the connected client.
+
+  Invoked through `GenMCP.notify_channel/3`. Servers that advertise the
+  `claude/channel` experimental capability should implement this callback.
+  """
+  @callback notify_channel(content :: String.t(), meta :: map(), state) ::
+              {:ok, :notified | :no_listener}
+
+  @optional_callbacks session_restore: 3,
+                      session_delete: 1,
+                      session_timeout: 1,
+                      notify_channel: 3
 
   @doc """
   The gen_mcp application uses telemetry events to publish various application
@@ -210,5 +222,40 @@ defmodule GenMCP do
   """
   def default_channel_log_level do
     @default_channel_log_level
+  end
+
+  @doc """
+  Pushes an experimental `claude/channel` event to a connected MCP client.
+
+  Channel events use the `notifications/claude/channel` method from the
+  experimental Claude Code channels protocol. Unlike resource notifications,
+  channel events do not require the client to subscribe — they are pushed
+  unconditionally to any session with an active listener.
+
+  The event arrives in the client as a `<channel source="server-name" ...>` tag
+  where `content` becomes the tag body and each `meta` entry becomes a tag
+  attribute.
+
+  The target server must advertise the capability (`channel: true` for
+  `GenMCP.Suite`) and implement a `notify_channel/3` callback.
+
+  ## Parameters
+
+  - `session_id` - The session identifier
+  - `content` - The event body (string)
+  - `meta` - Optional metadata map. Each key/value becomes an attribute on the
+    `<channel>` tag. Keys must be identifiers (letters, digits, underscores).
+
+  ## Returns
+
+  - `{:ok, :notified}` - The notification was sent successfully
+  - `{:ok, :no_listener}` - The session's channel has no active listener
+  - `{:error, {:session_not_found, session_id}}` - The session does not exist
+  """
+  @spec notify_channel(session_id :: String.t(), content :: String.t(), meta :: map()) ::
+          {:ok, :notified | :no_listener}
+          | {:error, {:session_not_found, String.t()}}
+  def notify_channel(session_id, content, meta \\ %{}) do
+    GenMCP.Mux.call_session(session_id, {:notify_channel, content, meta})
   end
 end

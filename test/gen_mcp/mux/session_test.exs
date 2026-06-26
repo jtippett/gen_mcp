@@ -142,4 +142,22 @@ defmodule GenMCP.Mux.SessionTest do
     assert {:error, :reply_reason} = Mux.request(session_id, bad_request, build_channel())
     assert_receive {:DOWN, ^ref, :process, ^pid, :exit_reason}
   end
+
+  test "notify_channel/3 routes to the server module" do
+    ServerMock
+    |> expect(:init, fn _, _ -> {:ok, :some_session_state} end)
+    |> expect(:notify_channel, fn "an event", %{source: "test"}, :some_session_state ->
+      {:ok, :notified}
+    end)
+
+    assert {:ok, session_id} = Mux.start_session(server: ServerMock)
+
+    assert {:ok, :notified} =
+             GenMCP.notify_channel(session_id, "an event", %{source: "test"})
+  end
+
+  test "notify_channel/3 returns session_not_found for an unknown session" do
+    assert {:error, {:session_not_found, "unknown-session"}} =
+             GenMCP.notify_channel("unknown-session", "an event")
+  end
 end

@@ -60,4 +60,33 @@ defmodule GenMCP.ChannelTest do
       assert %MCP.LoggingMessageNotification{params: %{data: ^data}} = notification
     end
   end
+
+  describe "send_channel/3" do
+    test "pushes a claude/channel notification with content and meta" do
+      channel = build_channel()
+
+      assert :ok = Channel.send_channel(channel, "hello world", %{kind: "status"})
+      assert_receive {:"$gen_mcp", :notification, notification}
+
+      assert %{
+               jsonrpc: "2.0",
+               method: "notifications/claude/channel",
+               params: %{content: "hello world", meta: %{kind: "status"}}
+             } = notification
+    end
+
+    test "defaults meta to an empty map" do
+      channel = build_channel()
+
+      assert :ok = Channel.send_channel(channel, "body")
+      assert_receive {:"$gen_mcp", :notification, %{params: %{content: "body", meta: %{}}}}
+    end
+
+    test "returns error when channel is closed" do
+      channel = Channel.as_closed(build_channel())
+
+      assert {:error, :closed} = Channel.send_channel(channel, "won't send")
+      refute_receive {:"$gen_mcp", :notification, _}
+    end
+  end
 end

@@ -39,6 +39,13 @@ defmodule GenMCP.Suite do
         type: {:or, [:atom, :mod_arg]},
         default: nil,
         doc: "A `GenMCP.Suite.SessionController` implementation"
+      ],
+      channel: [
+        type: :boolean,
+        default: false,
+        doc:
+          "Whether to advertise the experimental `claude/channel` capability." <>
+            " When enabled, `GenMCP.notify_channel/3` can push events to the client."
       ]
     )
 
@@ -77,6 +84,7 @@ defmodule GenMCP.Suite do
     @enforce_keys [
       # Client information
 
+      :channel,
       :client_capabilities,
       :client_initialized,
       :extensions,
@@ -636,6 +644,7 @@ defmodule GenMCP.Suite do
   defp initialize_from(init_data, init_channel, opts) do
     state =
       %State{
+        channel: Keyword.get(opts, :channel, false),
         client_capabilities: init_data.client_capabilities,
         client_initialized: init_data.client_initialized,
         extensions: build_extensions(opts),
@@ -702,12 +711,36 @@ defmodule GenMCP.Suite do
   end
 
   defp capabilities(state) do
-    [
+    base = [
       tools: map_size(state.tools_map) > 0,
       prompts: map_size(state.prompt_repos) > 0,
       resources: map_size(state.resource_repos) > 0,
       logging: true
     ]
+
+    if state.channel do
+      Keyword.put(base, :experimental, %{"claude/channel" => %{}})
+    else
+      base
+    end
+  end
+
+  @doc """
+  Pushes an experimental `claude/channel` event to the connected client.
+
+  Channel events are pushed unconditionally (no subscription required).
+
+  Returns:
+
+  - `{:ok, :notified}` when the notification was sent
+  - `{:ok, :no_listener}` when the session listener channel is closed
+  """
+  @impl GenMCP
+  def notify_channel(content, meta, %State{} = state) do
+    case Channel.send_channel(state.sc_channel, content, meta) do
+      :ok -> {:ok, :notified}
+      {:error, :closed} -> {:ok, :no_listener}
+    end
   end
 
   defp refresh_extensions(state, channel, :all) do

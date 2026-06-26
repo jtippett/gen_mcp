@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### 🚀 Features
+
+- Add experimental `claude/channel` capability and `GenMCP.notify_channel/3` for
+  pushing `notifications/claude/channel` events to Claude Code clients. Enable
+  with the `channel: true` Suite option; servers implement the optional
+  `notify_channel/3` callback.
+
 ## [0.10.0] - 2026-05-25
 
 ### 🚀 Features

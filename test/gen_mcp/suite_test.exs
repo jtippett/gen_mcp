@@ -8,6 +8,7 @@ defmodule GenMCP.SuiteTest do
 
   alias GenMCP.MCP
   alias GenMCP.MCP.Tool
+  alias GenMCP.Mux.Channel
   alias GenMCP.Suite
   alias GenMCP.Support.ExtensionMock
   alias GenMCP.Support.PromptRepoMock
@@ -527,7 +528,7 @@ defmodule GenMCP.SuiteTest do
                  }
                } = req
 
-        assert %GenMCP.Mux.Channel{} = channel
+        assert %Channel{} = channel
         assert :some_tool_arg = arg
         # we can return a cast value
         {:result, MCP.call_tool_result(text: "hello"), channel}
@@ -1894,6 +1895,74 @@ defmodule GenMCP.SuiteTest do
 
       assert [%{name: "ext1_2_prompt", description: "Ext1 Repo2 Prompt"}] = page4
       assert [%{name: "ext2_prompt", description: "Ext2 Prompt"}] = page5
+    end
+  end
+
+  describe "claude/channel experimental capability" do
+    test "is not advertised by default" do
+      {:ok, state} = Suite.init("some-session-id", @server_info)
+
+      init_req = %MCP.InitializeRequest{
+        id: 1,
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, result}, _state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{capabilities: %MCP.ServerCapabilities{experimental: nil}} =
+               result
+    end
+
+    test "is advertised when channel: true" do
+      {:ok, state} =
+        Suite.init("some-session-id", Keyword.put(@server_info, :channel, true))
+
+      init_req = %MCP.InitializeRequest{
+        id: 1,
+        params: %MCP.InitializeRequestParams{
+          capabilities: %MCP.ClientCapabilities{},
+          clientInfo: %{name: "test", version: "1.0.0"},
+          protocolVersion: "2025-06-18"
+        }
+      }
+
+      assert {:reply, {:result, result}, _state} =
+               Suite.handle_request(init_req, build_channel(), state)
+
+      assert %MCP.InitializeResult{
+               capabilities: %MCP.ServerCapabilities{
+                 experimental: %{"claude/channel" => %{}}
+               }
+             } = result
+    end
+  end
+
+  describe "notify_channel/3" do
+    test "pushes a channel notification to the session listener" do
+      state = init_session(channel: true)
+
+      assert {:ok, :notified} =
+               Suite.notify_channel("an event", %{source: "tests"}, state)
+
+      assert_receive {:"$gen_mcp", :notification, notification}
+
+      assert %{
+               method: "notifications/claude/channel",
+               params: %{content: "an event", meta: %{source: "tests"}}
+             } = notification
+    end
+
+    test "returns :no_listener when the session channel is closed" do
+      state = init_session(channel: true)
+      state = %{state | sc_channel: Channel.as_closed(state.sc_channel)}
+
+      assert {:ok, :no_listener} = Suite.notify_channel("an event", %{}, state)
+      refute_receive {:"$gen_mcp", :notification, _}
     end
   end
 end

@@ -103,6 +103,30 @@ defmodule GenMCP.Mux.Channel do
     :ok
   end
 
+  @doc """
+  Pushes an experimental `notifications/claude/channel` event to the client.
+
+  `content` becomes the event body and each `meta` entry becomes an attribute on
+  the rendered `<channel>` tag. Returns `:ok` when sent, or `{:error, :closed}`
+  when the channel has no active listener.
+  """
+  def send_channel(channel, content, meta \\ %{})
+
+  def send_channel(%{status: :closed}, _content, _meta) do
+    {:error, :closed}
+  end
+
+  def send_channel(channel, content, meta) do
+    payload = %{
+      jsonrpc: "2.0",
+      method: "notifications/claude/channel",
+      params: %{content: content, meta: meta}
+    }
+
+    send(channel.client, {:"$gen_mcp", :notification, payload})
+    :ok
+  end
+
   def send_result(%{status: :closed}, _payload) do
     {:error, :closed}
   end
