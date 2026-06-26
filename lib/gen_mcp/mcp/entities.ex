@@ -1622,6 +1622,62 @@ defmodule GenMCP.MCP.ProgressNotificationParams do
   @type t :: %__MODULE__{}
 end
 
+defmodule GenMCP.MCP.ResourceUpdatedNotificationParams do
+  use JSV.Schema
+
+  JsonDerive.auto(_merge = %{}, _keep_nils = [:uri])
+
+  defschema %{
+    description: ~SD"""
+    Parameters for a `notifications/resources/updated` notification.
+    """,
+    properties: %{
+      _meta: GenMCP.MCP.Meta,
+      uri:
+        uri(
+          description: ~SD"""
+          The URI of the resource that has been updated. This might be a
+          sub-resource of the one that the client actually subscribed to.
+          """
+        )
+    },
+    required: [:uri],
+    title: "MCP:ResourceUpdatedNotificationParams",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
+defmodule GenMCP.MCP.ResourceUpdatedNotification do
+  use JSV.Schema
+
+  JsonDerive.auto(
+    _merge = %{method: "notifications/resources/updated", jsonrpc: "2.0"},
+    _keep_nils = [:params]
+  )
+
+  @skip_keys [:jsonrpc, :method]
+
+  defschema %{
+    description: ~SD"""
+    A notification from the server to the client, informing it that a resource
+    has changed and may need to be read again. This should only be sent if the
+    client previously sent a `resources/subscribe` request.
+    """,
+    properties: %{
+      jsonrpc: const("2.0"),
+      method: const("notifications/resources/updated"),
+      params: GenMCP.MCP.ResourceUpdatedNotificationParams
+    },
+    required: [:jsonrpc, :method, :params],
+    title: "MCP:ResourceUpdatedNotification",
+    type: "object"
+  }
+
+  @type t :: %__MODULE__{}
+end
+
 defmodule GenMCP.MCP.ProgressToken do
   use JSV.Schema
 

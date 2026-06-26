@@ -9,6 +9,14 @@ defmodule GenMCP.Mux do
 
   # -- Session Initializing ---------------------------------------------------
 
+  @doc """
+  Returns the number of active MCP sessions registered in this node's scope.
+  """
+  @spec session_count() :: non_neg_integer()
+  def session_count do
+    :syn.registry_count(@syn_scope)
+  end
+
   def start_session(opts) do
     session_id = gen_session_id()
 
