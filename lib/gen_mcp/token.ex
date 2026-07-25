@@ -57,13 +57,19 @@ defmodule GenMCP.Token do
     * `{:reqstate, unicity}` - an MRTR `requestState` blob, qualified by a map
       that binds it to the exact call that produced it (the tool name and its
       arguments).
+    * `{:session, namespace}` - the client data a 2025 compatibility session id
+      carries, qualified by the namespace of the session format.
 
-  The purpose participates in key derivation, so a token only ever decrypts
-  under the exact purpose it was minted for. A `resources/list` cursor replayed
-  on `prompts/list` is rejected, and a cursor can never pass as a request state.
-  For a `{:reqstate, unicity}` purpose the map is hashed deterministically, so
-  the qualifier verifies regardless of key order, which is what lets a retry on
-  another node rebuild the same purpose without coordinating map construction.
+  The purpose kind and its bounded qualifiers participate in key derivation, so
+  a token only ever reads back under the exact purpose it was minted for. A
+  `resources/list` cursor replayed on `prompts/list` is rejected, and a cursor
+  can never pass as a request state. For a `{:reqstate, unicity}` purpose the
+  binding to the specific call travels inside the token: the map is hashed
+  deterministically, the hash is sealed alongside the value, and `decrypt/4`
+  rehashes the purpose it is given and compares — a blob presented with
+  different tool arguments is `{:error, :invalid}`. The deterministic hash
+  verifies regardless of map key order, which is what lets a retry on another
+  node rebuild the same purpose without coordinating map construction.
 
   All `gen_mcp` tokens carry a salt namespace that keeps them distinct from any
   `Phoenix.Token` the host application mints from the same endpoint, even if the
@@ -75,11 +81,19 @@ defmodule GenMCP.Token do
   `Plug.Crypto` embeds the mint-time `:max_age` inside the encrypted payload, so
   `decrypt/4` enforces it without the call site having to remember. Pass an
   explicit `:max_age` (in seconds) to either function to override it.
+
+  ### Key derivation cost
+
+  Deriving a key from the `secret_key_base` and a salt runs PBKDF2, which costs
+  around 0.2ms. `Plug.Crypto` memoizes the result in a node-wide table keyed by
+  salt, so each distinct salt pays that cost once. Every salt here comes from a
+  bounded set — a method name, a format namespace, a purpose kind — so the
+  table stays a handful of rows and token operations run at the memoized cost.
   """
 
   alias GenMCP.Mux.Channel
 
-  @type purpose :: {:cursor, String.t()} | {:reqstate, map}
+  @type purpose :: {:cursor, String.t()} | {:reqstate, map} | {:session, String.t()}
 
   @type key_source :: Channel.t() | module | binary | Plug.Conn.t()
 
@@ -123,7 +137,7 @@ defmodule GenMCP.Token do
 
   def encrypt(context, purpose, term, opts) do
     opts = Keyword.put_new(opts, :max_age, @default_max_age_seconds)
-    Phoenix.Token.encrypt(context, salt_for(purpose), term, opts)
+    Phoenix.Token.encrypt(context, salt_for(purpose), seal_value(purpose, term), opts)
   end
 
   @doc """
@@ -172,17 +186,69 @@ defmodule GenMCP.Token do
   end
 
   def decrypt(context, purpose, token, opts) do
-    Phoenix.Token.decrypt(context, salt_for(purpose), token, opts)
+    with {:ok, sealed} <- Phoenix.Token.decrypt(context, salt_for(purpose), token, opts) do
+      unseal_value(purpose, sealed)
+    end
+  end
+
+  # -- Purpose binding ---------------------------------------------------------
+
+  # Every purpose salts on a value from a bounded set (a method name, a format
+  # namespace, the literal "reqstate"), so the derived key for each salt is
+  # computed once and memoized by `Plug.Crypto` — its cache is keyed by salt
+  # and never evicted, which is only acceptable for a bounded salt set.
+  #
+  # The per-call part of a `{:reqstate, unicity}` purpose therefore cannot live
+  # in the salt. It is sealed inside the token instead: encrypt stores
+  # `{hash(unicity), term}`, and decrypt rehashes the purpose it was given and
+  # compares. The envelope is authenticated, so the embedded hash is as
+  # unforgeable as the token itself, and a blob replayed against a different
+  # call fails the comparison exactly as it used to fail decryption.
+
+  defp seal_value({:reqstate, qualifier}, term) when is_map(qualifier) do
+    {hash_qualifier(qualifier), term}
+  end
+
+  defp seal_value(_purpose, term) do
+    term
+  end
+
+  defp unseal_value({:reqstate, qualifier}, sealed) when is_map(qualifier) do
+    expected_hash = hash_qualifier(qualifier)
+
+    case sealed do
+      {^expected_hash, term} -> {:ok, term}
+      _ -> {:error, :invalid}
+    end
+  end
+
+  defp unseal_value(_purpose, term) do
+    {:ok, term}
   end
 
   defp salt_for({:cursor, qualifier}) when is_binary(qualifier) do
     "gen_mcp cursor " <> qualifier
   end
 
-  defp salt_for({:reqstate, qualifier}) when is_map(qualifier) do
-    "gen_mcp reqstate " <> hash_qualifier(qualifier)
+  defp salt_for({:session, qualifier}) when is_binary(qualifier) do
+    "gen_mcp session " <> qualifier
   end
 
+  defp salt_for({:reqstate, qualifier}) when is_map(qualifier) do
+    "gen_mcp reqstate"
+  end
+
+  # This must stay a cryptographic hash. The AEAD envelope authenticates the
+  # *embedded* copy (its Poly1305 tag is the MAC — no separate HMAC is needed
+  # here), but the comparison in `unseal_value/2` is between fingerprints of
+  # arguments the client chooses on *both* sides: it picks the mint-time call
+  # and the retry call, so the binding holds only if finding any colliding
+  # pair of calls is infeasible — full collision resistance, birthday-bounded
+  # at 2^(n/2). SHA-256 puts that at 2^128; a non-crypto hash like
+  # `:erlang.phash2/2` (32 bits) collides within ~2^16 tries even before its
+  # structure is exploited. The cost difference is irrelevant: SHA-256 over a
+  # typical unicity map is single-digit microseconds, noise next to the
+  # encryption around it.
   defp hash_qualifier(term) do
     bin = :erlang.term_to_binary(term, [:deterministic])
     :crypto.hash(:sha256, bin)

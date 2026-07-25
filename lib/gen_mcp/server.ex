@@ -7,6 +7,8 @@ defmodule GenMCP.Server do
   alias GenMCP.Mux.Channel
   alias GenMCP.Utils.OptsValidator
 
+  require Logger
+
   @enforce_keys [:server_mod, :server_state, :owner, :mref, :channel]
   defstruct @enforce_keys
 
@@ -55,9 +57,33 @@ defmodule GenMCP.Server do
 
       {:error, reason} ->
         :telemetry.execute([:gen_mcp, :server, :start_error], %{}, %{reason: reason})
+        log_start_error(reason)
 
         {:error, reason}
     end
+  end
+
+  # A worker that cannot start answers the client a bare `-32603 Internal
+  # Error`, which is indistinguishable from a crash mid-request — and the usual
+  # cause is a mount whose options do not validate, which fails identically on
+  # every single request. The reason also reaches `[:gen_mcp, :server,
+  # :start_error]`, but `GenMCP.TelemetryLogger` is opt-in, so an application
+  # that never attached it would have nothing at all to go on. This log is not
+  # conditional on that: a server that cannot start is always worth saying out
+  # loud, and the duplicate line for applications that did attach the logger is
+  # a fair price for never being silent.
+  defp log_start_error(%NimbleOptions.ValidationError{} = reason) do
+    Logger.error("""
+    gen_mcp could not start a server worker: #{Exception.message(reason)}
+
+    This is an option validation failure, so it is most likely the options given \
+    where the transport is mounted. Every request to this endpoint fails the same \
+    way until it is fixed.\
+    """)
+  end
+
+  defp log_start_error(reason) do
+    Logger.error("gen_mcp could not start a server worker: #{inspect(reason)}")
   end
 
   # -- Worker ------------------------------------------------------------------

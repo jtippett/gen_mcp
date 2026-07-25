@@ -115,18 +115,50 @@ defmodule GenMCP.TokenTest do
       assert {:ok, ^state} = Token.decrypt(@key_base, purpose, token)
     end
 
-    test "binding is deterministic regardless of map key order" do
-      # The hash is `:erlang.term_to_binary(unicity, [:deterministic])` →
-      # sha256, which canonicalizes key order. A purpose rebuilt on the retry
-      # node with keys inserted in a different order derives the same salt, so
-      # the blob still verifies — this is what makes a retry on another node
-      # work without coordinating map construction.
-      mint = {:reqstate, %{tool: "transfer", args: %{"amount" => 100, "to" => "alice"}}}
-      verify = {:reqstate, %{args: %{"to" => "alice", "amount" => 100}, tool: "transfer"}}
+    test "the binding hash is canonical, so a retry on another node verifies" do
+      # A small map (<= 32 keys) stores its atom keys in atom-table index
+      # order, assigned as atoms are created, so it differs between VM
+      # invocations. Two nodes can hold the same `%{tool:, args:}` purpose laid
+      # out differently, and an encoding following that layout would hash
+      # differently on each — every MRTR retry landing on the other node would
+      # be `:invalid`. Measured across two VM invocations of one map: the plain
+      # encodings differ, the `:deterministic` ones match (see spec 020).
+      #
+      # Insertion order is *not* the risk: flatmaps sort their keys and HAMTs
+      # hash them, so building the same map in a different order is stable at
+      # any size. Only the atom table varies, and one VM cannot re-run with a
+      # different one — so this pins the property that makes it safe instead:
+      # the hash must cover the canonical (term-ordered) encoding rather than
+      # the VM's layout.
+      n = System.unique_integer([:positive])
+      created_first = String.to_atom("zz_#{n}")
+      created_second = String.to_atom("aa_#{n}")
+      qualifier = %{created_first => 1, created_second => 2}
 
-      token = Token.encrypt(@key_base, mint, %{step: 1})
+      # Not vacuous: this map really is laid out against term order, so the two
+      # encodings genuinely disagree and the assertion below can tell them apart.
+      assert Map.keys(qualifier) != Enum.sort(Map.keys(qualifier))
 
-      assert {:ok, %{step: 1}} = Token.decrypt(@key_base, verify, token)
+      assert :erlang.term_to_binary(qualifier) !=
+               :erlang.term_to_binary(qualifier, [:deterministic])
+
+      # Minting past our own encrypt/4 (same key, same salt) is what makes this
+      # a test of the production hash rather than of a copy of it: the embedded
+      # hash is the canonical one, so decrypt/4 accepts only if it hashes the
+      # same way.
+      canonical =
+        :crypto.hash(:sha256, :erlang.term_to_binary(qualifier, [:deterministic]))
+
+      token = Phoenix.Token.encrypt(@key_base, "gen_mcp reqstate", {canonical, :state})
+
+      # What this test cannot do is create the same map with atoms created in a
+      # different order (creatingin aa_* before zz_*), because obviously the
+      # atoms already exist in this runtime, and so the map will have the same
+      # order.
+      #
+      # We could use a test child node for it but hey...
+
+      assert {:ok, :state} = Token.decrypt(@key_base, {:reqstate, qualifier}, token)
     end
 
     test "rejects a blob minted for tool A when verified for tool B" do

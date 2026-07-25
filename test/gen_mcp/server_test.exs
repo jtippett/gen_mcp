@@ -1,6 +1,7 @@
 defmodule GenMCP.ServerTest do
   use ExUnit.Case, async: false
 
+  import ExUnit.CaptureLog
   import Mox
 
   alias GenMCP.Mux.Channel
@@ -167,5 +168,50 @@ defmodule GenMCP.ServerTest do
 
     assert_receive {:"$gen_mcp", :result, :final}, 1000
     assert_receive {:DOWN, ^wref, :process, ^worker, {:shutdown, :stream_done}}, 1000
+  end
+
+  describe "a worker that cannot start" do
+    # Spec 022. The client only ever sees `-32603 Internal Error`, which says
+    # nothing about the cause, and the usual cause — a mount whose options do
+    # not validate — fails identically on every request. The reason has to
+    # reach the operator by some route that does not depend on having attached
+    # `GenMCP.TelemetryLogger`.
+
+    test "logs the option that failed validation" do
+      # The Suite requires :server_name and :server_version. Omitting them is
+      # exactly what a mount copied from an incomplete example does.
+      log =
+        capture_log(fn ->
+          assert {:error, _} =
+                   Server.start_request(
+                     [server: GenMCP.Suite, tools: []],
+                     :fake_request,
+                     Channel.for_pid(self())
+                   )
+        end)
+
+      assert log =~ "could not start a server worker"
+      # The whole point: the missing option is named.
+      assert log =~ "server_name"
+      # And it says where to look, since the mount is what carries the options.
+      assert log =~ "mounted"
+    end
+
+    test "logs a non-validation stop reason as-is" do
+      expect(ServerMock, :init, fn _opts -> {:stop, :nope} end)
+
+      log =
+        capture_log(fn ->
+          assert {:error, _} =
+                   Server.start_request(
+                     [server: ServerMock],
+                     :fake_request,
+                     Channel.for_pid(self())
+                   )
+        end)
+
+      assert log =~ "could not start a server worker"
+      assert log =~ ":nope"
+    end
   end
 end

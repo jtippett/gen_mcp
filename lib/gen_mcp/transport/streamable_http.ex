@@ -44,7 +44,12 @@ defmodule GenMCP.Transport.StreamableHTTP do
   serve:
 
       forward "/mcp", GenMCP.Transport.StreamableHTTP,
+        server_name: "My App",
+        server_version: "1.0.0",
         tools: [MyApp.AddTool]
+
+  `:server_name` and `:server_version` are what the Suite reports to clients
+  and are required; every example below carries them for that reason.
 
   To run a custom `GenMCP` implementation instead of the Suite, pass it as
   `:server`:
@@ -92,6 +97,8 @@ defmodule GenMCP.Transport.StreamableHTTP do
         pipe_through :mcp_auth
 
         forward "/", GenMCP.Transport.StreamableHTTP,
+          server_name: "My App",
+          server_version: "1.0.0",
           tools: [MyApp.AddTool],
           copy_assigns: [:current_user]
       end
@@ -108,6 +115,8 @@ defmodule GenMCP.Transport.StreamableHTTP do
   already validates the origin.
 
       forward "/mcp", GenMCP.Transport.StreamableHTTP,
+        server_name: "My App",
+        server_version: "1.0.0",
         tools: [MyApp.AddTool],
         allowed_origins: ["https://app.example.com"]
 
@@ -118,8 +127,15 @@ defmodule GenMCP.Transport.StreamableHTTP do
   different tools, resources, or origins:
 
       scope "/mcp" do
-        forward "/files", GenMCP.Transport.StreamableHTTP, tools: [MyApp.FileTool]
-        forward "/admin", GenMCP.Transport.StreamableHTTP, tools: [MyApp.AdminTool]
+        forward "/files", GenMCP.Transport.StreamableHTTP,
+          server_name: "My App (files)",
+          server_version: "1.0.0",
+          tools: [MyApp.FileTool]
+
+        forward "/admin", GenMCP.Transport.StreamableHTTP,
+          server_name: "My App (admin)",
+          server_version: "1.0.0",
+          tools: [MyApp.AdminTool]
       end
 
   Phoenix resolves a forwarded plug to a path by module, so reverse route lookup
@@ -145,8 +161,15 @@ defmodule GenMCP.Transport.StreamableHTTP do
       StreamableHTTP.defplug(MyAppWeb.AdminMcp)
 
       scope "/mcp" do
-        forward "/files", MyAppWeb.FilesMcp, tools: [MyApp.FileTools]
-        forward "/admin", MyAppWeb.AdminMcp, tools: [MyApp.AdminTools]
+        forward "/files", MyAppWeb.FilesMcp,
+          server_name: "My App (files)",
+          server_version: "1.0.0",
+          tools: [MyApp.FileTools]
+
+        forward "/admin", MyAppWeb.AdminMcp,
+          server_name: "My App (admin)",
+          server_version: "1.0.0",
+          tools: [MyApp.AdminTools]
       end
   """
   use Plug.Router, copy_opts_to_assign: :gen_mcp_streamable_http_opts
@@ -244,7 +267,10 @@ defmodule GenMCP.Transport.StreamableHTTP do
       StreamableHTTP.defplug(MyAppWeb.McpPlug)
 
       # then, in the router, mount the generated module
-      forward "/mcp", MyAppWeb.McpPlug, tools: [MyApp.AddTool]
+      forward "/mcp", MyAppWeb.McpPlug,
+        server_name: "My App",
+        server_version: "1.0.0",
+        tools: [MyApp.AddTool]
   """
   defmacro defplug(module) do
     module = Macro.expand_literals(module, __CALLER__)
@@ -275,14 +301,12 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
 
   import Plug.Conn
 
-  alias GenMCP.Error
-  alias GenMCP.MCP.V2607.JSONRPCResultResponse
   alias GenMCP.Mux.Channel
   alias GenMCP.Server
+  alias GenMCP.Transport.Relay
   alias GenMCP.Validator
-  alias JSV.Codec
 
-  @stream_keepalive_timeout to_timeout(second: 25)
+  @codec {Relay.Codec.JSONRPC, nil}
 
   # Legacy support. Initialized notification does not exist in schemas
   def http_post(
@@ -395,7 +419,7 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
     channel = make_channel(conn, req, conf)
 
     case Server.start_request(conf.server_opts, req, channel) do
-      {:ok, pid} -> init_loop(conn, msg_id, pid)
+      {:ok, pid} -> Relay.respond(conn, @codec, msg_id, pid)
       {:error, reason} -> send_error(conn, reason, msg_id)
     end
   end
@@ -411,7 +435,7 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
     channel = make_channel(conn, notif, conf)
 
     case Server.start_notification(conf.server_opts, notif, channel) do
-      {:ok, pid} -> init_loop(conn, _msg_id = nil, pid)
+      {:ok, pid} -> Relay.respond(conn, @codec, _msg_id = nil, pid)
       {:error, reason} -> send_error(conn, reason, _msg_id = nil)
     end
   end
@@ -434,232 +458,11 @@ defmodule GenMCP.Transport.StreamableHTTP.Impl do
   defp send_accepted(conn) do
     conn
     |> send_resp(202, "")
-    |> finalize()
-  end
-
-  defp send_json(conn, status, payload) do
-    body = json_encode(payload, true)
-
-    conn
-    |> put_resp_content_type("application/json")
-    |> send_resp(status, body)
-  end
-
-  defp init_loop(conn, msg_id, server_pid) do
-    mref = :erlang.monitor(:process, server_pid, tag: :SERVER_DOWN)
-
-    state = %{
-      gen_mcp_msg_id: msg_id,
-      gen_mcp_server: server_pid,
-      gen_mcp_mref: mref,
-      gen_mcp_status: :init
-    }
-
-    conn = Plug.Conn.merge_private(conn, state)
-    stream_loop(conn)
-  end
-
-  defp stream_loop(conn) do
-    receive do
-      {:"$gen_mcp", :result, result} ->
-        send_result(conn, result)
-
-      {:"$gen_mcp", :accepted} ->
-        send_accepted(conn)
-
-      {:"$gen_mcp", :notification, notif} ->
-        conn = init_stream(conn)
-        send_notification(conn, notif, &reenter_stream_loop/1)
-
-      {:"$gen_mcp", :stream} ->
-        conn = init_stream(conn)
-        stream_loop(conn)
-
-      {:"$gen_mcp", :error, reason} ->
-        send_error(conn, reason)
-
-      {:"$gen_mcp", :close} ->
-        send(conn.private.gen_mcp_server, {:"$gen_mcp", :closed})
-        finalize(conn)
-
-      {:SERVER_DOWN, _mref, :process, _pid, reason} ->
-        handle_server_down(conn, reason)
-
-      {:timeout, tref, {__MODULE__, :keepalive}} ->
-        # Bracket access: a stale timeout from a previous request on the same
-        # keepalive connection may arrive before any stream was initialized.
-        case conn.private[:gen_mcp_keepalive] do
-          ^tref ->
-            case chunk(conn, ":keepalive\n") do
-              {:ok, conn} -> reenter_stream_loop(conn)
-              {:error, :closed} -> conn
-            end
-
-          _ ->
-            stream_loop(conn)
-        end
-
-      other
-      when other != {:plug_conn, :sent} and not (is_tuple(other) and elem(other, 0) == :bandit) ->
-        unexpected_message(other)
-        stream_loop(conn)
-    end
-  end
-
-  # The worker died before delivering a result or error. A reply-exit
-  # (`{:shutdown, :reply}`) is never seen here: the reply message is enqueued
-  # before the exit, so the loop sends the response and returns first.
-  #
-  # * Clean exit while streaming — a `{:stop, reason}` continuation (listener
-  #   exit with no final result): terminate the stream.
-  # * Clean exit with no output at all, or a crash — convert to a proper
-  #   JSON-RPC internal error instead of a generic Bandit 500.
-  defp handle_server_down(conn, reason) do
-    clean? =
-      case reason do
-        :normal -> true
-        :shutdown -> true
-        {:shutdown, _} -> true
-        _ -> false
-      end
-
-    case {clean?, conn.private.gen_mcp_status} do
-      {true, :streaming} -> finalize(conn)
-      {_, _} -> send_error(conn, :server_crashed)
-    end
-  end
-
-  defp reenter_stream_loop(conn) do
-    conn
-    |> reset_keepalive()
-    |> stream_loop()
-  end
-
-  defp init_stream(%{private: %{gen_mcp_status: :init}} = conn) do
-    conn
-    |> put_resp_header("content-type", "text/event-stream")
-    |> put_resp_header("x-accel-buffering", "no")
-    |> send_chunked(200)
-    |> start_keepalive()
-    |> put_private(:gen_mcp_status, :streaming)
-  end
-
-  defp init_stream(%{private: %{gen_mcp_status: :streaming}} = conn) do
-    conn
-  end
-
-  defp send_result(conn, result) do
-    payload = %JSONRPCResultResponse{
-      id: conn.private.gen_mcp_msg_id,
-      jsonrpc: "2.0",
-      result: result
-    }
-
-    case conn.private.gen_mcp_status do
-      :init -> conn |> send_json(200, payload) |> finalize()
-      :streaming -> send_stream_message(conn, json_encode(payload), &finalize/1)
-    end
-  end
-
-  defp send_error(conn, reason) do
-    msg_id = Map.get(conn.private, :gen_mcp_msg_id)
-    send_error(conn, reason, msg_id)
+    |> Relay.finalize()
   end
 
   # Public: also used by the router module (origin validation).
   def send_error(conn, reason, msg_id) do
-    emit_rejection(reason)
-    {status, error_payload} = Error.cast_error(reason)
-
-    payload = %GenMCP.MCP.V2607.JSONRPCErrorResponse{
-      error: error_payload,
-      id: msg_id,
-      jsonrpc: "2.0"
-    }
-
-    case conn.private[:gen_mcp_status] do
-      :init -> conn |> send_json(status, payload) |> finalize()
-      nil -> conn |> send_json(status, payload) |> finalize()
-      :streaming -> send_stream_message(conn, json_encode(payload), &finalize/1)
-    end
-  end
-
-  # Every rejection funnels through send_error/3, so this is the single place to
-  # trace them. server_crashed is a fault (:error); the rest are client-induced
-  # rejections (:debug). Protocol-version negotiation gets its own event so its
-  # level can be tuned independently.
-  defp emit_rejection(:server_crashed = reason) do
-    :telemetry.execute([:gen_mcp, :transport, :server_crashed], %{}, %{reason: reason})
-  end
-
-  defp emit_rejection({:unsupported_protocol_version, _} = reason) do
-    :telemetry.execute([:gen_mcp, :transport, :version_rejected], %{}, %{reason: reason})
-  end
-
-  defp emit_rejection(reason) do
-    :telemetry.execute([:gen_mcp, :transport, :request_rejected], %{}, %{reason: reason})
-  end
-
-  defp send_notification(conn, notif, continuation) do
-    :streaming = conn.private.gen_mcp_status
-    send_stream_message(conn, json_encode(notif), continuation)
-  end
-
-  defp start_keepalive(conn) do
-    tref = :erlang.start_timer(@stream_keepalive_timeout, self(), {__MODULE__, :keepalive})
-    Plug.Conn.put_private(conn, :gen_mcp_keepalive, tref)
-  end
-
-  defp reset_keepalive(conn) do
-    :ok = :erlang.cancel_timer(conn.private.gen_mcp_keepalive, async: true, info: false)
-    _conn = start_keepalive(conn)
-  end
-
-  if Mix.env() == :test do
-    @spec unexpected_message(term) :: no_return
-    defp unexpected_message(msg) do
-      raise "unexpected message in #{inspect(__MODULE__)}: #{inspect(msg)}"
-    end
-  else
-    defp unexpected_message(_msg) do
-      :ok
-    end
-  end
-
-  # Terminal cleanup, called from every point where the response ends: result
-  # or error sent (direct or streamed), 202 accepted, clean worker shutdown, or
-  # the client closing the socket. Flushes the worker monitor and cancels the
-  # keepalive timer — the conn process may serve further requests on a
-  # keepalive connection, and a late :SERVER_DOWN or stale timeout would be
-  # read by the next request's receive loop.
-  defp finalize(conn) do
-    case conn.private[:gen_mcp_mref] do
-      nil -> :ok
-      mref -> :erlang.demonitor(mref, [:flush])
-    end
-
-    case conn.private[:gen_mcp_keepalive] do
-      nil -> :ok
-      tref -> :ok = :erlang.cancel_timer(tref, async: true, info: false)
-    end
-
-    halt(conn)
-  end
-
-  defp send_stream_message(conn, data, continuation) do
-    event = "event: message\ndata: #{data}\n\n"
-
-    case chunk(conn, event) do
-      {:ok, conn} -> continuation.(conn)
-      {:error, :closed} -> finalize(conn)
-    end
-  end
-
-  defp json_encode(payload, pretty? \\ false) do
-    if pretty? do
-      Codec.format_to_iodata!(payload)
-    else
-      Codec.encode_to_iodata!(payload)
-    end
+    Relay.send_error(conn, reason, msg_id, @codec)
   end
 end
