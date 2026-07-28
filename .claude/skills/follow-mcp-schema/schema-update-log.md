@@ -21,6 +21,13 @@ One or two lines: what was decided and why.
 
 -->
 
+## 2026-07-28 — listen-result meta renamed, response envelope added (schemas_ref: 04d603e)
+
+Upstream renamed `SubscriptionsListenResultMeta` → `SubscriptionsListenResultMetaObject`
+(generated module renamed accordingly, one reference in `suite.ex` updated) and added
+`SubscriptionsListenResultResponse`, a JSON-RPC response envelope configured `:nogen`
+like every other `*ResultResponse`. No surface change; tests green.
+
 ## 2026-07-16 — serverInfo moved into result `_meta` (schemas_ref: 26897cc)
 
 Upstream #3002: `DiscoverResult.serverInfo` removed; server identity now lives in a new

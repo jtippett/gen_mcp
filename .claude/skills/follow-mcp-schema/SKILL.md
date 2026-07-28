@@ -31,6 +31,16 @@ they land between now and the release date — i.e. exactly the one-update-at-a-
 triage this skill describes. Most diffs are small follow-on adjustments to spec
 text that has already been implemented, not net-new features.
 
+The library also serves **2025-11 clients** through a compatibility shim under
+`lib/gen_mcp/transport/streamable_http/v2511/`. The shim translates in both
+directions — `translate.ex` builds `V2607` request structs from decoded 2025
+bodies (the 2025 HTTP GET stream becomes a `SubscriptionsListenRequest`) and
+downgrades `V2607` results to the plain maps a 2025 client understands;
+`codecs.ex` renders results and notifications onto the 2025 wire. So a schema
+change to a 2026 type is not settled once the 2026 surface compiles: check
+whether the shim builds, matches, or downgrades that type, and whether the
+downgrade still strips exactly the 2026-only fields.
+
 Before going deep, **load the `pm-guide` skill** and look at the `pm` specs to see
 where the implementation stands. The specs written under `pm` tracking are the best
 map of what's been built (stateless core, transport, the V2607 surface, guides),
@@ -163,6 +173,7 @@ this is analysis to bring to the user, not a checklist to go implement:
 | A new result builder or option a handler returns | `lib/gen_mcp/mcp/v2607.ex` (the `GenMCP.MCP.V2607` module) — add or extend a builder function/option. |
 | A new error condition reported to clients | `lib/gen_mcp/error.ex`. |
 | A capability/type that was removed or renamed upstream | Support for it may now be dead — flag it as a candidate for removal. |
+| A change to a type the 2025 shim builds or downgrades (tools list/call, discover/initialize, subscriptions-listen, notifications, `_meta` shapes) | `lib/gen_mcp/transport/streamable_http/v2511/` — `translate.ex` (2025→2026 requests, 2026→2025 result downgrades) and `codecs.ex` (wire rendering). New 2026-only fields must be stripped from downgraded payloads; renamed/reshaped types the shim pattern-matches on must be followed. |
 | Anything outside the supported surface | Nothing to do — note it and move on. |
 
 Not every schema change requires a code change. "Nothing to do" is a valid and
@@ -222,4 +233,7 @@ you work:
 - `lib/gen_mcp/mcp/v2607.ex` — `GenMCP.MCP.V2607` result/content builders.
 - `lib/gen_mcp/validator.ex` — recognized request/notification surface.
 - `lib/gen_mcp/error.ex` — client-facing errors.
+- `lib/gen_mcp/transport/streamable_http/v2511/` — the 2025-11 compatibility
+  shim (`translate.ex`, `codecs.ex`); check it whenever a type it translates
+  changes.
 - `mix.exs` — `@schemas_ref` pins the upstream commit.

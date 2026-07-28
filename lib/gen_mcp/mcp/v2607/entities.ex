@@ -152,7 +152,8 @@ defmodule GenMCP.MCP.V2607.ModMap do
         "SubscriptionsListenRequest" => GenMCP.MCP.V2607.SubscriptionsListenRequest,
         "SubscriptionsListenRequestParams" => GenMCP.MCP.V2607.SubscriptionsListenRequestParams,
         "SubscriptionsListenResult" => GenMCP.MCP.V2607.SubscriptionsListenResult,
-        "SubscriptionsListenResultMeta" => GenMCP.MCP.V2607.SubscriptionsListenResultMeta,
+        "SubscriptionsListenResultMetaObject" =>
+          GenMCP.MCP.V2607.SubscriptionsListenResultMetaObject,
         "TextContent" => GenMCP.MCP.V2607.TextContent,
         "TextResourceContents" => GenMCP.MCP.V2607.TextResourceContents,
         "Tool" => GenMCP.MCP.V2607.Tool,
@@ -4368,7 +4369,7 @@ defmodule GenMCP.MCP.V2607.SubscriptionsListenResult do
     empty.
     """,
     properties: %{
-      _meta: GenMCP.MCP.V2607.SubscriptionsListenResultMeta,
+      _meta: GenMCP.MCP.V2607.SubscriptionsListenResultMetaObject,
       resultType:
         string(
           description: ~SD"""
@@ -4391,7 +4392,7 @@ defmodule GenMCP.MCP.V2607.SubscriptionsListenResult do
   @type t :: %__MODULE__{}
 end
 
-defmodule GenMCP.MCP.V2607.SubscriptionsListenResultMeta do
+defmodule GenMCP.MCP.V2607.SubscriptionsListenResultMetaObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
   [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
@@ -4417,7 +4418,7 @@ defmodule GenMCP.MCP.V2607.SubscriptionsListenResultMeta do
       "io.modelcontextprotocol/subscriptionId": GenMCP.MCP.V2607.RequestId
     },
     required: [:"io.modelcontextprotocol/subscriptionId"],
-    title: "MCP:SubscriptionsListenResultMeta",
+    title: "MCP:SubscriptionsListenResultMetaObject",
     type: "object"
   }
 

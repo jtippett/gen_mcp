@@ -618,7 +618,7 @@ defmodule GenMCP.Suite do
         result =
           %MCP.SubscriptionsListenResult{
             resultType: "complete",
-            _meta: %MCP.SubscriptionsListenResultMeta{
+            _meta: %MCP.SubscriptionsListenResultMetaObject{
               "io.modelcontextprotocol/subscriptionId": req.id
             }
           }
