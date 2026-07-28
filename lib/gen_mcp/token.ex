@@ -226,12 +226,12 @@ defmodule GenMCP.Token do
     {:ok, term}
   end
 
-  defp salt_for({:cursor, qualifier}) when is_binary(qualifier) do
-    "gen_mcp cursor " <> qualifier
+  defp salt_for({:cursor, method}) when is_binary(method) do
+    "gen_mcp cursor " <> method
   end
 
-  defp salt_for({:session, qualifier}) when is_binary(qualifier) do
-    "gen_mcp session " <> qualifier
+  defp salt_for({:session, vsn}) when is_binary(vsn) do
+    "gen_mcp session " <> vsn
   end
 
   defp salt_for({:reqstate, qualifier}) when is_map(qualifier) do
