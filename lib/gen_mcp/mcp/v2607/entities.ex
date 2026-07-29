@@ -170,7 +170,7 @@ end
 defmodule GenMCP.MCP.V2607.Annotations do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Optional annotations for the client. The client can use annotations to
   inform how objects are used or displayed
@@ -232,7 +232,7 @@ end
 defmodule GenMCP.MCP.V2607.AudioContent do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Audio provided to or from an LLM.
   """
@@ -270,7 +270,7 @@ end
 defmodule GenMCP.MCP.V2607.BlobResourceContents do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -303,7 +303,7 @@ end
 defmodule GenMCP.MCP.V2607.CacheableResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A result that supports a time-to-live (TTL) hint for client-side
   caching.
@@ -361,7 +361,7 @@ end
 defmodule GenMCP.MCP.V2607.CallToolRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Used by the client to invoke a tool provided by the server.
   """
@@ -399,7 +399,7 @@ end
 defmodule GenMCP.MCP.V2607.CallToolRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `tools/call` request.
   """
@@ -433,7 +433,7 @@ end
 defmodule GenMCP.MCP.V2607.CallToolResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   CallToolRequesttools/call} request.
@@ -510,7 +510,7 @@ end
 defmodule GenMCP.MCP.V2607.CancelledNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   This notification is sent by the client to indicate that it is
   cancelling a request it previously issued.
@@ -578,7 +578,7 @@ end
 defmodule GenMCP.MCP.V2607.CancelledNotificationParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `notifications/cancelled` notification.
   """
@@ -614,7 +614,7 @@ end
 defmodule GenMCP.MCP.V2607.ClientCapabilities do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Capabilities a client may support. Known capabilities are defined
   here, in this schema, but this is not a closed set: any client can
@@ -690,7 +690,7 @@ end
 defmodule GenMCP.MCP.V2607.ContentBlock do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -715,7 +715,7 @@ end
 defmodule GenMCP.MCP.V2607.CreateMessageRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A request from the server to sample an LLM via the client. The client
   has full discretion over which model to select. The client should also
@@ -750,7 +750,7 @@ end
 defmodule GenMCP.MCP.V2607.CreateMessageRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `sampling/createMessage` request.
   """
@@ -808,7 +808,7 @@ end
 defmodule GenMCP.MCP.V2607.CreateMessageResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the client for a {@link
   CreateMessageRequestsampling/createMessage} request. The client should
@@ -870,7 +870,7 @@ end
 defmodule GenMCP.MCP.V2607.DiscoverRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A request from the client asking the server to advertise its supported
   protocol versions, capabilities, and other metadata. Servers **MUST**
@@ -919,7 +919,7 @@ end
 defmodule GenMCP.MCP.V2607.DiscoverResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   DiscoverRequestserver/discover} request.
@@ -1000,7 +1000,7 @@ end
 defmodule GenMCP.MCP.V2607.ElicitRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A request from the server to elicit additional information from the
   user via the client.
@@ -1031,7 +1031,7 @@ end
 defmodule GenMCP.MCP.V2607.ElicitRequestFormParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The parameters for a request to elicit non-sensitive information from
   the user via a form in the client.
@@ -1082,7 +1082,7 @@ end
 defmodule GenMCP.MCP.V2607.ElicitRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The parameters for a request to elicit additional information from the
   user via the client.
@@ -1106,7 +1106,7 @@ end
 defmodule GenMCP.MCP.V2607.ElicitRequestURLParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The parameters for a request to elicit information from the user via a
   URL in the client.
@@ -1144,7 +1144,7 @@ end
 defmodule GenMCP.MCP.V2607.ElicitResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the client for an {@link
   ElicitRequestelicitation/create} request.
@@ -1185,7 +1185,7 @@ end
 defmodule GenMCP.MCP.V2607.EmbeddedResource do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The contents of a resource, embedded into a prompt or tool call
   result.
@@ -1228,7 +1228,7 @@ end
 defmodule GenMCP.MCP.V2607.Error do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1267,7 +1267,7 @@ end
 defmodule GenMCP.MCP.V2607.GetPromptRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Used by the client to get a prompt provided by the server.
   """
@@ -1305,7 +1305,7 @@ end
 defmodule GenMCP.MCP.V2607.GetPromptRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `prompts/get` request.
   """
@@ -1339,7 +1339,7 @@ end
 defmodule GenMCP.MCP.V2607.GetPromptResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   GetPromptRequestprompts/get} request.
@@ -1384,7 +1384,7 @@ end
 defmodule GenMCP.MCP.V2607.Icon do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An optionally-sized icon that can be displayed in a user interface.
   """
@@ -1445,7 +1445,7 @@ end
 defmodule GenMCP.MCP.V2607.Icons do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Base interface to add `icons` property.
   """
@@ -1486,7 +1486,7 @@ end
 defmodule GenMCP.MCP.V2607.ImageContent do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An image provided to or from an LLM.
   """
@@ -1524,7 +1524,7 @@ end
 defmodule GenMCP.MCP.V2607.Implementation do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Describes the MCP implementation.
   """
@@ -1604,7 +1604,7 @@ end
 defmodule GenMCP.MCP.V2607.InputRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1627,7 +1627,7 @@ end
 defmodule GenMCP.MCP.V2607.InputRequests do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A map of server-initiated requests that the client must fulfill. Keys
   are server-assigned identifiers; values are the request objects.
@@ -1652,7 +1652,7 @@ end
 defmodule GenMCP.MCP.V2607.InputRequiredResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An InputRequiredResult sent by the server to indicate that additional
   input is needed before the request can be completed.
@@ -1701,7 +1701,7 @@ end
 defmodule GenMCP.MCP.V2607.InputResponse do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1724,7 +1724,7 @@ end
 defmodule GenMCP.MCP.V2607.InputResponseRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1751,7 +1751,7 @@ end
 defmodule GenMCP.MCP.V2607.InputResponses do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A map of client responses to server-initiated requests. Keys
   correspond to the keys in the {@link InputRequests} map; values are
@@ -1778,7 +1778,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONArray do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1794,7 +1794,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1814,7 +1814,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONRPCErrorResponse do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A response to a request that indicates an error occurred.
   """
@@ -1844,7 +1844,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONRPCRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A request that expects a response.
   """
@@ -1873,7 +1873,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONRPCResponse do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A response to a request, containing either the result or error.
   """
@@ -1895,7 +1895,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONRPCResultResponse do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A successful (non-error) response to a request.
   """
@@ -1923,7 +1923,7 @@ end
 defmodule GenMCP.MCP.V2607.JSONValue do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -1946,7 +1946,7 @@ end
 defmodule GenMCP.MCP.V2607.ListPromptsRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the client to request a list of prompts and prompt templates
   the server has.
@@ -1986,7 +1986,7 @@ end
 defmodule GenMCP.MCP.V2607.ListPromptsResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   ListPromptsRequestprompts/list} request.
@@ -2052,7 +2052,7 @@ end
 defmodule GenMCP.MCP.V2607.ListResourceTemplatesRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the client to request a list of resource templates the
   server has.
@@ -2095,7 +2095,7 @@ end
 defmodule GenMCP.MCP.V2607.ListResourceTemplatesResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   ListResourceTemplatesRequestresources/templates/list} request.
@@ -2164,7 +2164,7 @@ end
 defmodule GenMCP.MCP.V2607.ListResourcesRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the client to request a list of resources the server has.
   """
@@ -2205,7 +2205,7 @@ end
 defmodule GenMCP.MCP.V2607.ListResourcesResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   ListResourcesRequestresources/list} request.
@@ -2271,7 +2271,7 @@ end
 defmodule GenMCP.MCP.V2607.ListRootsRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the server to request a list of root URIs from the client.
   Roots allow servers to ask for specific directories or files to
@@ -2314,7 +2314,7 @@ end
 defmodule GenMCP.MCP.V2607.ListRootsResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the client for a {@link
   ListRootsRequestroots/list} request. This result contains an array of
@@ -2346,7 +2346,7 @@ end
 defmodule GenMCP.MCP.V2607.ListToolsRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the client to request a list of tools the server has.
   """
@@ -2384,7 +2384,7 @@ end
 defmodule GenMCP.MCP.V2607.ListToolsResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   ListToolsRequesttools/list} request.
@@ -2450,7 +2450,7 @@ end
 defmodule GenMCP.MCP.V2607.LoggingLevel do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The severity of a log message.
 
@@ -2469,7 +2469,7 @@ end
 defmodule GenMCP.MCP.V2607.LoggingMessageNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   JSONRPCNotification of a log message passed from server to client. The
   client opts in by setting `"io.modelcontextprotocol/logLevel"` in a
@@ -2513,7 +2513,7 @@ end
 defmodule GenMCP.MCP.V2607.LoggingMessageNotificationParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `notifications/message` notification.
   """
@@ -2554,7 +2554,7 @@ end
 defmodule GenMCP.MCP.V2607.MetaObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Represents the contents of a `_meta` field, which clients and servers
   use to attach additional metadata to their interactions.
@@ -2624,7 +2624,7 @@ end
 defmodule GenMCP.MCP.V2607.ModelHint do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Hints to use for model selection.
 
@@ -2673,7 +2673,7 @@ end
 defmodule GenMCP.MCP.V2607.ModelPreferences do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The server's preferences for model selection, requested of the client
   during sampling.
@@ -2766,7 +2766,7 @@ end
 defmodule GenMCP.MCP.V2607.NotificationMetaObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Extends {@link MetaObject} with additional notification-specific
   fields. All key naming rules from `MetaObject` apply.
@@ -2795,7 +2795,7 @@ end
 defmodule GenMCP.MCP.V2607.NotificationParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Common params for any notification.
   """
@@ -2818,7 +2818,7 @@ end
 defmodule GenMCP.MCP.V2607.PaginatedRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Common params for paginated requests.
   """
@@ -2851,7 +2851,7 @@ end
 defmodule GenMCP.MCP.V2607.ProgressNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An out-of-band notification used to inform the receiver of a progress
   update for a long-running request.
@@ -2893,7 +2893,7 @@ end
 defmodule GenMCP.MCP.V2607.ProgressNotificationParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a {@link ProgressNotificationnotifications/progress}
   notification.
@@ -2944,7 +2944,7 @@ end
 defmodule GenMCP.MCP.V2607.ProgressToken do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A progress token, used to associate progress notifications with the
   original request.
@@ -2968,7 +2968,7 @@ end
 defmodule GenMCP.MCP.V2607.Prompt do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A prompt or prompt template that the server offers.
   """
@@ -3045,7 +3045,7 @@ end
 defmodule GenMCP.MCP.V2607.PromptArgument do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Describes an argument that a prompt can accept.
   """
@@ -3091,7 +3091,7 @@ end
 defmodule GenMCP.MCP.V2607.PromptListChangedNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An optional notification from the server to the client, informing it
   that the list of prompts it offers has changed. This is only delivered
@@ -3139,7 +3139,7 @@ end
 defmodule GenMCP.MCP.V2607.PromptMessage do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Describes a message returned as part of a prompt.
 
@@ -3174,7 +3174,7 @@ end
 defmodule GenMCP.MCP.V2607.ReadResourceRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the client to the server, to read a specific resource URI.
   """
@@ -3215,7 +3215,7 @@ end
 defmodule GenMCP.MCP.V2607.ReadResourceRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `resources/read` request.
   """
@@ -3250,7 +3250,7 @@ end
 defmodule GenMCP.MCP.V2607.ReadResourceResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result returned by the server for a {@link
   ReadResourceRequestresources/read} request.
@@ -3312,7 +3312,7 @@ end
 defmodule GenMCP.MCP.V2607.RequestId do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A uniquely identifying ID for a request in JSON-RPC.
   """
@@ -3334,7 +3334,7 @@ end
 defmodule GenMCP.MCP.V2607.RequestMetaObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Extends {@link MetaObject} with additional request-specific fields.
   All key naming rules from `MetaObject` apply.
@@ -3387,7 +3387,7 @@ end
 defmodule GenMCP.MCP.V2607.RequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Common params for any request.
   """
@@ -3411,7 +3411,7 @@ end
 defmodule GenMCP.MCP.V2607.Resource do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A known resource that the server is capable of reading.
   """
@@ -3497,7 +3497,7 @@ end
 defmodule GenMCP.MCP.V2607.ResourceLink do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A resource that the server is capable of reading, included in a prompt
   or tool call result.
@@ -3594,7 +3594,7 @@ end
 defmodule GenMCP.MCP.V2607.ResourceListChangedNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An optional notification from the server to the client, informing it
   that the list of resources it can read from has changed. This is only
@@ -3642,7 +3642,7 @@ end
 defmodule GenMCP.MCP.V2607.ResourceTemplate do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A template description for resources available on the server.
   """
@@ -3731,7 +3731,7 @@ end
 defmodule GenMCP.MCP.V2607.ResourceUpdatedNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A notification from the server to the client, informing it that a
   resource has changed and may need to be read again. This is only sent
@@ -3779,7 +3779,7 @@ end
 defmodule GenMCP.MCP.V2607.ResourceUpdatedNotificationParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a `notifications/resources/updated` notification.
   """
@@ -3814,7 +3814,7 @@ end
 defmodule GenMCP.MCP.V2607.Result do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Common result fields.
   """
@@ -3854,7 +3854,7 @@ end
 defmodule GenMCP.MCP.V2607.ResultMetaObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Extends {@link MetaObject} with additional result-specific fields. All
   key naming rules from `MetaObject` apply.
@@ -3883,7 +3883,7 @@ end
 defmodule GenMCP.MCP.V2607.Role do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The sender or recipient of messages and data in a conversation.
   """
@@ -3899,7 +3899,7 @@ end
 defmodule GenMCP.MCP.V2607.Root do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Represents a root directory or file that the server can operate on.
   """
@@ -3944,7 +3944,7 @@ end
 defmodule GenMCP.MCP.V2607.SamplingMessage do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Describes a message issued to or received from an LLM API.
   """
@@ -3983,7 +3983,7 @@ end
 defmodule GenMCP.MCP.V2607.SamplingMessageContentBlock do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -4008,7 +4008,7 @@ end
 defmodule GenMCP.MCP.V2607.ServerCapabilities do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Capabilities that a server may support. Known capabilities are defined
   here, in this schema, but this is not a closed set: any server can
@@ -4107,7 +4107,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionFilter do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The set of notification types a client may opt in to on a {@link
   SubscriptionsListenRequestsubscriptions/listen} request.
@@ -4171,7 +4171,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionsAcknowledgedNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent by the server to acknowledge that a {@link
   SubscriptionsListenRequestsubscriptions/listen} subscription has been
@@ -4231,7 +4231,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionsAcknowledgedNotificationParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a {@link
   SubscriptionsAcknowledgedNotificationnotifications/subscriptions/acknowledged}
@@ -4264,7 +4264,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionsListenRequest do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Sent from the client to open a long-lived channel for receiving
   notifications outside the context of a specific request. Replaces the
@@ -4311,7 +4311,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionsListenRequestParams do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Parameters for a {@link
   SubscriptionsListenRequestsubscriptions/listen} request.
@@ -4342,7 +4342,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionsListenResult do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The response to a {@link
   SubscriptionsListenRequestsubscriptions/listen} request, signalling
@@ -4395,7 +4395,7 @@ end
 defmodule GenMCP.MCP.V2607.SubscriptionsListenResultMetaObject do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Extends {@link ResultMetaObject} with the subscription-stream
   identifier carried by a {@link SubscriptionsListenResult}. All key
@@ -4428,7 +4428,7 @@ end
 defmodule GenMCP.MCP.V2607.TextContent do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Text provided to or from an LLM.
   """
@@ -4459,7 +4459,7 @@ end
 defmodule GenMCP.MCP.V2607.TextResourceContents do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   No description provided.
   """
@@ -4493,7 +4493,7 @@ end
 defmodule GenMCP.MCP.V2607.Tool do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Definition for a tool the client can call.
   """
@@ -4602,7 +4602,7 @@ end
 defmodule GenMCP.MCP.V2607.ToolAnnotations do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Additional properties describing a {@link Tool} to clients.
 
@@ -4684,7 +4684,7 @@ end
 defmodule GenMCP.MCP.V2607.ToolChoice do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   Controls tool selection behavior for sampling requests.
   """
@@ -4709,7 +4709,7 @@ end
 defmodule GenMCP.MCP.V2607.ToolListChangedNotification do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   An optional notification from the server to the client, informing it
   that the list of tools it offers has changed. This is only delivered
@@ -4755,7 +4755,7 @@ end
 defmodule GenMCP.MCP.V2607.ToolResultContent do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   The result of a tool use, provided by the user back to the assistant.
   """
@@ -4820,7 +4820,7 @@ end
 defmodule GenMCP.MCP.V2607.ToolUseContent do
   @moduledoc """
   Struct and module-based JSON schema generated from
-  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/draft/schema.json).
+  [modelcontextprotocol.io JSON schema](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/schema/2026-07-28/schema.json).
 
   A request from the assistant to call a tool.
   """

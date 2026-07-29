@@ -684,7 +684,7 @@ defmodule Generator do
   end
 end
 
-Generator.run("deps/modelcontextprotocol/schema/draft/schema.json",
+Generator.run("deps/modelcontextprotocol/schema/2026-07-28/schema.json",
   output_path: "lib/gen_mcp/mcp/v2607/entities.ex",
   mod_prefix: GenMCP.MCP.V2607,
   # Allow/deny table reconciled against the 2026-07-28 draft `$defs`
